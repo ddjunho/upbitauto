@@ -1,5 +1,5 @@
 # upbitauto
-nohup python3 bitcoinAutoTrade.py > output.log &
+nohup python3 bitcoinAutoTradeWithAI.py > output.log &
 
 
 ps ax | grep .py

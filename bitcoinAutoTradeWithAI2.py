@@ -47,9 +47,9 @@ def predict_price(ticker):
     model.fit(data)
     future = model.make_future_dataframe(periods=24, freq='H')
     forecast = model.predict(future)
-    closeDf = forecast[forecast['ds'] == forecast.iloc[-1]['ds'].replace(hour=9)]
+    closeDf = forecast[forecast['ds'] == forecast.iloc[-1]['ds'].replace(hour=23).replace(minute=19)]
     if len(closeDf) == 0:
-        closeDf = forecast[forecast['ds'] == data.iloc[-1]['ds'].replace(hour=9)]
+        closeDf = forecast[forecast['ds'] == data.iloc[-1]['ds'].replace(hour=23).replace(minute=19)]
     closeValue = closeDf['yhat'].values[0]
     predicted_close_price = closeValue
 predict_price("KRW-BTC")
@@ -63,7 +63,7 @@ print("autotrade start")
 while True:
     try:
         now = datetime.datetime.now()
-        start_time = get_start_time("KRW-BTC")
+        start_time = get_start_time("KRW-BTC") + datetime.timedelta(minutes=859)
         end_time = start_time + datetime.timedelta(days=1)
         schedule.run_pending()
 

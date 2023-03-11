@@ -84,3 +84,15 @@ def run_auto_trade():
         except Exception as e:
             print(e)
             time.sleep(1)
+# 스케줄러 설정
+schedule.every(1).minutes.do(run_auto_trade)
+
+# 스케줄러 실행
+while True:
+    try:
+        schedule.run_pending()
+        time.sleep(1)
+    except Exception as e:
+        print(e)
+        time.sleep(1)
+

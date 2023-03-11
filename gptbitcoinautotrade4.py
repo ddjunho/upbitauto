@@ -1,5 +1,3 @@
-
-
 import time
 import pyupbit
 import datetime
@@ -11,28 +9,29 @@ import schedule
 # API Key 설정
 access = "9PofI7vsCCOJEaSaxzZnW79HxcWHnQA2FbrQ7cWQ"
 secret = "diUxCv8gLAl2QQ6Q0RT620as3Vxaon4vYrqyxjMc"
-upbit = pyupbit.Upbit(access, secret)
 
-# 분산 매수, 분산 매도를 위한 변수 설정
-num_buys = 5
-num_sells = 5
-buy_ratio = 0.2
-sell_ratio = 0.2
+# 분할 매수, 매도를 위한 변수 설정
+buy_unit = 0.1   # 분할 매수 금액 단위 설정
+sell_unit = 0.1  # 분할 매도 금액 단위 설정
 
-# 매수 목표가 계산 함수
+# 목표 수익률 및 손절률 설정
+target_profit = 1.05  # 목표 수익률 5%
+stop_loss = 0.95      # 손절률 5%
+
 def get_target_price(ticker, k):
+    # 최근 24시간 동안의 데이터를 가져와서 매수 목표가 계산
     df = pyupbit.get_ohlcv(ticker, interval="day", count=2)
     target_price = df.iloc[0]['close'] + (df.iloc[0]['high'] - df.iloc[0]['low']) * k
     return target_price
   
-# 시작 시간 계산 함수
 def get_start_time(ticker):
+    # 최근 1일 동안의 데이터를 가져와서 시작 시간 계산
     df = pyupbit.get_ohlcv(ticker, interval="day", count=1)
     start_time = df.index[0]
     return start_time
-
-# 잔고 조회 함수
+  
 def get_balance(ticker):
+    # 잔고 조회
     balances = upbit.get_balances()
     for b in balances:
         if b['currency'] == ticker:
@@ -41,13 +40,13 @@ def get_balance(ticker):
             else:
                 return 0
     return 0
-
-# 현재가 조회 함수
+  
 def get_current_price(ticker):
+    # 현재가 조회
     return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
 
-# 매도 예측 함수
 def predict_sell_price(ticker):
+    # 일주일 동안의 데이터를 가져와서 매도 예측 가격 계산
     df = pyupbit.get_ohlcv(ticker, interval="day", count=7)
     ts = df['close']
     model = sm.tsa.ARIMA(ts, order=(2, 1, 2))
@@ -55,51 +54,37 @@ def predict_sell_price(ticker):
     forecast = results.forecast(steps=1)
     return forecast[0][0]
 
-# 분산 매수 함수
-def buy_crypto(ticker, krw_amount):
-    for i in range(num_buys):
-        krw = get_balance("KRW")
-        if krw > krw_amount:
-            upbit.buy_market_order(ticker, krw*buy_ratio)
-            time.sleep(1)
-
-# 분산 매도 함수
-def sell_crypto(ticker, crypto_amount):
-    for i in range(num_sells):
-        crypto_balance = get_balance(ticker)
-        if crypto_balance > crypto_amount:
-            upbit.sell_market_order(ticker, crypto_balance*sell_ratio)
-            time.sleep(1)
-
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 
-# 매도 예측 초기값 설정
-predicted_sell_price = predict_sell_price("KRW-BTC")
-
-while True:
-    try:
-        now = datetime.datetime.now()
-        start_time = get_start_time("KRW-BTC")
-        end_time = start_time + datetime.timedelta(days=1)
-        if start_time < now < end_time - datetime.timedelta(seconds=10):
-            # 매수 조건 검사
-            target_price = get_target_price("KRW-BTC", 0.7)
-            current_price = get_current_price("KRW-BTC")
-            if target_price < current_price and current_price < buy_price:
-                krw = get_balance("KRW")
-                if krw > 5000:
-                    upbit.buy_market_order("KRW-BTC", krw*0.9995)
-        else:
-            # 매도 조건 검사
-            current_price = get_current_price("KRW-BTC")
-            if current_price >= predicted_sell_price:
-                btc = get_balance("BTC")
-                if btc > 0.00008:
-                    upbit.sell_market_order("KRW-BTC", btc*1)
-                # 매도 후 다시 예측
-                predicted_sell_price = predict_sell_price("KRW-BTC")
-        time.sleep(1)
-    except Exception as e:
-        print(e)
-        time.sleep(1)
+# 자동매매 시작 함수
+def run_auto_trade():
+    # 매도 예측 초기값 설정
+    predicted_sell_price = predict_sell_price("KRW-BTC")
+    while True:
+        try:
+             # 현재 시간 및 매수/매도 조건 검사
+            now = datetime.datetime.now()
+            start_time = get_start_time("KRW-BTC")
+            end_time = start_time + datetime.timedelta(days=1)
+            if start_time < now < end_time - datetime.timedelta(seconds=10):
+                # 매수 조건 검사 및 수행
+                target_price = get_target_price("KRW-BTC", 0.7)
+                current_price = get_current_price("KRW-BTC")
+                if target_price < current_price:
+                    krw = get_balance("KRW")
+                    if krw > 5000:
+                        upbit.buy_market_order("KRW-BTC", krw*0.9995)
+            else:
+                # 매도 조건 검사 및 수행
+                current_price = get_current_price("KRW-BTC")
+                if current_price >= predicted_sell_price:
+                    btc = get_balance("BTC")
+                    if btc > 0.00008:
+                        upbit.sell_market_order("KRW-BTC", btc*1)
+                    # 매도 후 다시 예측
+                    predicted_sell_price = predict_sell_price("KRW-BTC")
+            time.sleep(1)
+        except Exception as e:
+            print(e)
+            time.sleep(1)

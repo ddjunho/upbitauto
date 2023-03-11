@@ -76,11 +76,12 @@ def run_auto_trade():
                         upbit.buy_market_order(COIN, krw*0.9995)
             else:
                 current_price = get_current_price(COIN)
-                if current_price >= predicted_sell_price:
+                current_high_price = pyupbit.get_ohlcv(COIN, interval='minute1', count=60)['high'].max()
+                if current_high_price >= predicted_sell_price:
                     btc = get_balance("BTC")
                     if btc > 0.00008:
                         upbit.sell_market_order(COIN, btc*1)
-                        predicted_sell_price = predict_sell_price("KRW-BTC")
+                        predicted_sell_price = current_high_price
             time.sleep(1)
         except Exception as e:
             print(e)

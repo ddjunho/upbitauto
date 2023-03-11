@@ -6,17 +6,19 @@ import numpy as np
 import statsmodels.api as sm
 import schedule
 
-# API Key 설정
 access = "9PofI7vsCCOJEaSaxzZnW79HxcWHnQA2FbrQ7cWQ"
 secret = "diUxCv8gLAl2QQ6Q0RT620as3Vxaon4vYrqyxjMc"
-
-# 분할 매수, 매도를 위한 변수 설정
 buy_unit = 0.1   # 분할 매수 금액 단위 설정
 sell_unit = 0.1  # 분할 매도 금액 단위 설정
 
-# 목표 수익률 및 손절률 설정
 target_profit = 1.05  # 목표 수익률 5%
 stop_loss = 0.95      # 손절률 5%
+
+bought = False
+sell_time = None
+buy_price = None
+
+COIN = "KRW-BTC" #코인명
 
 def get_target_price(ticker, k):
     # 최근 24시간 동안의 데이터를 가져와서 매수 목표가 계산
@@ -40,7 +42,7 @@ def get_balance(ticker):
             else:
                 return 0
     return 0
-  
+
 def get_current_price(ticker):
     # 현재가 조회
     return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
@@ -59,31 +61,26 @@ upbit = pyupbit.Upbit(access, secret)
 
 # 자동매매 시작 함수
 def run_auto_trade():
-    # 매도 예측 초기값 설정
-    predicted_sell_price = predict_sell_price("KRW-BTC")
+    predicted_sell_price = predict_sell_price(COIN)
     while True:
         try:
-             # 현재 시간 및 매수/매도 조건 검사
             now = datetime.datetime.now()
-            start_time = get_start_time("KRW-BTC")
+            start_time = get_start_time(COIN)
             end_time = start_time + datetime.timedelta(days=1)
             if start_time < now < end_time - datetime.timedelta(seconds=10):
-                # 매수 조건 검사 및 수행
-                target_price = get_target_price("KRW-BTC", 0.7)
-                current_price = get_current_price("KRW-BTC")
+                target_price = get_target_price(COIN, 0.7)
+                current_price = get_current_price(COIN)
                 if target_price < current_price:
                     krw = get_balance("KRW")
                     if krw > 5000:
-                        upbit.buy_market_order("KRW-BTC", krw*0.9995)
+                        upbit.buy_market_order(COIN, krw*0.9995)
             else:
-                # 매도 조건 검사 및 수행
-                current_price = get_current_price("KRW-BTC")
+                current_price = get_current_price(COIN)
                 if current_price >= predicted_sell_price:
                     btc = get_balance("BTC")
                     if btc > 0.00008:
-                        upbit.sell_market_order("KRW-BTC", btc*1)
-                    # 매도 후 다시 예측
-                    predicted_sell_price = predict_sell_price("KRW-BTC")
+                        upbit.sell_market_order(COIN, btc*1)
+                        predicted_sell_price = predict_sell_price("KRW-BTC")
             time.sleep(1)
         except Exception as e:
             print(e)

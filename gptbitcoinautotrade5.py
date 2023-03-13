@@ -57,7 +57,7 @@ def predict_sell_price(ticker):
 
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
-print("autotrade start")
+
 # 자동매매 시작 함수
 def run_auto_trade():
     global predicted_sell_price
@@ -88,6 +88,7 @@ def run_auto_trade():
             time.sleep(1)
 # 스케줄러 설정
 schedule.every(1).minutes.do(run_auto_trade)
+print("autotrade start")
 
 # 스케줄러 실행
 while True:

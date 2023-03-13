@@ -80,6 +80,9 @@ def run_auto_trade():
                     if btc > 0.00008:
                         upbit.sell_market_order(COIN, btc*1)
                         predicted_sell_price = max(predicted_sell_price, predict_sell_price(COIN))
+            # 새로운 매도 예측 가격 계산
+            if predicted_sell_price < predict_sell_price(COIN):
+                predicted_sell_price = predict_sell_price(COIN)
             time.sleep(1)
         except Exception as e:
             print(e)

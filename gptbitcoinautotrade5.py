@@ -60,7 +60,7 @@ upbit = pyupbit.Upbit(access, secret)
 
 # 자동매매 시작 함수
 def run_auto_trade():
-    predicted_sell_price = predict_sell_price(COIN)
+    global predicted_sell_price
     while True:
         try:
             now = datetime.datetime.now()
@@ -74,15 +74,14 @@ def run_auto_trade():
                     if krw > 5000:
                         upbit.buy_market_order(COIN, krw*0.9995)
             else:
+                if predicted_sell_price is None or now.hour == 9 and now.minute == 0:
+                    predicted_sell_price = predict_sell_price(COIN)
                 current_price = get_current_price(COIN)
                 if current_price >= predicted_sell_price:
                     btc = get_balance("BTC")
                     if btc > 0.00008:
                         upbit.sell_market_order(COIN, btc*1)
                         predicted_sell_price = max(predicted_sell_price, predict_sell_price(COIN))
-            # 새로운 매도 예측 가격 계산
-            if predicted_sell_price < predict_sell_price(COIN):
-                predicted_sell_price = predict_sell_price(COIN)
             time.sleep(1)
         except Exception as e:
             print(e)

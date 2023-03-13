@@ -87,7 +87,7 @@ def run_auto_trade():
             print(e)
             time.sleep(1)
 # 스케줄러 설정
-schedule.every(1).minutes.do(run_auto_trade)
+schedule.every(1).seconds.do(run_auto_trade)
 print("autotrade start")
 
 # 스케줄러 실행

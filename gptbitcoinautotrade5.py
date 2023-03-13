@@ -57,7 +57,7 @@ def predict_sell_price(ticker):
 
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
-
+print("autotrade start")
 # 자동매매 시작 함수
 def run_auto_trade():
     global predicted_sell_price

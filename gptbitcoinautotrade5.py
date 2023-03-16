@@ -20,8 +20,8 @@ buy_price = None
 COIN = "KRW-BTC" #코인명
 
 def get_target_price(ticker, k):
-    # 최근 24시간 동안의 데이터를 가져와서 매수 목표가 계산
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=2)
+    # 최근 3일 동안의 데이터를 가져와서 매수 목표가 계산
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=4)
     target_price = df.iloc[0]['close'] + (df.iloc[0]['high'] - df.iloc[0]['low']) * k
     return target_price
   
@@ -47,8 +47,8 @@ def get_current_price(ticker):
     return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
 
 def predict_sell_price(ticker):
-    # 일주일 동안의 데이터를 가져와서 매도 예측 가격 계산
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=7)
+    # 3일 동안의 데이터를 가져와서 매도 예측 가격 계산
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=3)
     ts = df['close']
     model = sm.tsa.ARIMA(ts, order=(2, 1, 2))
     results = model.fit(trend='nc', full_output=True, disp=1)

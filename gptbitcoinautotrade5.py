@@ -9,7 +9,7 @@ import schedule
 access = "9PofI7vsCCOJEaSaxzZnW79HxcWHnQA2FbrQ7cWQ"
 secret = "diUxCv8gLAl2QQ6Q0RT620as3Vxaon4vYrqyxjMc"
 buy_unit = 0.25   # 분할 매수 금액 단위 설정
-sell_unit = 0.25  # 분할 매도 금액 단위 설정
+sell_unit = 0.5  # 분할 매도 금액 단위 설정
 
 stop_loss = 0.95      # 손절률 5%
 bought = False
@@ -85,7 +85,7 @@ def run_auto_trade():
                 if current_price >= predicted_sell_price:
                     btc = get_balance("BTC")
                     if btc > 0.00008:
-                        sell_amount = btc * 2 * sell_unit # 분할 매도 금액 계산
+                        sell_amount = btc * 1
                         upbit.sell_market_order(COIN, sell_amount)
                         predicted_sell_price = max(predicted_sell_price, predict_sell_price(COIN))
         except Exception as e:

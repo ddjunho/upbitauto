@@ -15,7 +15,7 @@ stop_loss = 0.95      # 손절률 5%
 bought = False
 sell_time = None
 buy_price = None
-
+days = 0
 COIN = "KRW-BTC" #코인명
 
 def get_target_price(ticker, k):

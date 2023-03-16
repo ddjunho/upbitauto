@@ -72,8 +72,7 @@ def run_auto_trade():
                 if target_price < current_price:
                     krw = get_balance("KRW")
                     if krw > 5000:
-                        buy_amount = krw * 0.9995  # 분할 매수 금액 계산
-                        buy_amount = buy_unit * np.floor(buy_amount / buy_unit)  # 분할 매수 금액 단위로 조정
+                        buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
                         upbit.buy_market_order(COIN, buy_amount)
             else:
                 if predicted_sell_price is None or now.hour == 9 and now.minute == 0:
@@ -82,8 +81,7 @@ def run_auto_trade():
                 if current_price >= predicted_sell_price:
                     btc = get_balance("BTC")
                     if btc > 0.00008:
-                        sell_amount = btc * 1  # 분할 매도 금액 계산
-                        sell_amount = sell_unit * np.floor(sell_amount / sell_unit)  # 분할 매도 금액 단위로 조정
+                        sell_amount = btc * 1 * sell_unit # 분할 매도 금액 계산
                         upbit.sell_market_order(COIN, sell_amount)
                         predicted_sell_price = max(predicted_sell_price, predict_sell_price(COIN))
         except Exception as e:

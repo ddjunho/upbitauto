@@ -74,9 +74,8 @@ def run_auto_trade():
                 target_price = get_target_price(COIN, 0.7)
                 current_price = get_current_price(COIN)
                 if target_price < current_price:
-                    if krw > 5000:
-                        buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
-                        upbit.buy_market_order(COIN, buy_amount)
+                    buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
+                    upbit.buy_market_order(COIN, buy_amount)
             else:
                 if predicted_sell_price is None or now.hour == 9 and now.minute == 0:
                     predicted_sell_price = predict_sell_price(COIN)

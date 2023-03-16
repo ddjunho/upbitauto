@@ -20,6 +20,7 @@ COIN = "KRW-BTC" #코인명
 
 def get_target_price(ticker, k):
     # 최근 3+n일 동안의 데이터를 가져와서 매수 목표가 계산
+    global days
     days += 1  # 분할 매수할 때마다 n일 증가
     if days >= 3:
         days = 0

@@ -12,12 +12,12 @@ buy_unit = 0.1   # 분할 매수 금액 단위 설정
 sell_unit = 0.1  # 분할 매도 금액 단위 설정
 
 stop_loss = 0.95      # 손절률 5%
-
 bought = False
 sell_time = None
 buy_price = None
 
 COIN = "KRW-BTC" #코인명
+days = 3 # 시작은 최근 3일 동안의 데이터로 설정
 
 def get_target_price(ticker, k):
     # 최근 3+n일 동안의 데이터를 가져와서 매수 목표가 계산
@@ -47,8 +47,8 @@ def get_current_price(ticker):
     return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
 
 def predict_sell_price(ticker):
-    # 3일 동안의 데이터를 가져와서 매도 예측 가격 계산
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=3)
+    # 3+n일 동안의 데이터를 가져와서 매도 예측 가격 계산
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=days)
     ts = df['close']
     model = sm.tsa.ARIMA(ts, order=(2, 1, 2))
     results = model.fit(trend='nc', full_output=True, disp=1)
@@ -59,8 +59,8 @@ def predict_sell_price(ticker):
 upbit = pyupbit.Upbit(access, secret)
 
 # 자동매매 시작 함수
+
 def run_auto_trade():
-    days = 3# 시작은 최근 3일 동안의 데이터로 설정
     global predicted_sell_price
     while True:
         try:
@@ -103,4 +103,3 @@ while True:
     except Exception as e:
         print(e)
         time.sleep(1)
-

@@ -62,7 +62,7 @@ def predict_sell_price(ticker):
 upbit = pyupbit.Upbit(access, secret)
 
 # 자동매매 시작 함수
-
+krw = get_balance("KRW")
 def run_auto_trade():
     global predicted_sell_price
     while True:
@@ -74,7 +74,6 @@ def run_auto_trade():
                 target_price = get_target_price(COIN, 0.7)
                 current_price = get_current_price(COIN)
                 if target_price < current_price:
-                    krw = get_balance("KRW")
                     if krw > 5000:
                         buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
                         upbit.buy_market_order(COIN, buy_amount)
@@ -85,7 +84,7 @@ def run_auto_trade():
                 if current_price >= predicted_sell_price:
                     btc = get_balance("BTC")
                     if btc > 0.00008:
-                        sell_amount = btc * 1 * sell_unit # 분할 매도 금액 계산
+                        sell_amount = btc * 2 * sell_unit # 분할 매도 금액 계산
                         upbit.sell_market_order(COIN, sell_amount)
                         predicted_sell_price = max(predicted_sell_price, predict_sell_price(COIN))
         except Exception as e:

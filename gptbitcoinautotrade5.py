@@ -19,7 +19,7 @@ buy_price = None
 COIN = "KRW-BTC" #코인명
 days = 3 # 시작은 최근 3일 동안의 데이터로 설정
 
-def get_target_price(ticker, k):
+def get_target_price(ticker, k, days):
     # 최근 3+n일 동안의 데이터를 가져와서 매수 목표가 계산
     df = pyupbit.get_ohlcv(ticker, interval="day", count=days+1)
     target_price = df.iloc[0]['close'] + (df.iloc[0]['high'] - df.iloc[0]['low']) * k
@@ -68,7 +68,7 @@ def run_auto_trade():
             start_time = get_start_time(COIN)
             end_time = start_time + datetime.timedelta(days=1)
             if start_time < now < end_time - datetime.timedelta(seconds=10):
-                target_price = get_target_price(COIN, 0.7)
+                target_price = get_target_price(COIN, 0.7, days)
                 current_price = get_current_price(COIN)
                 if target_price < current_price:
                     krw = get_balance("KRW")

@@ -76,6 +76,8 @@ def run_auto_trade():
                         buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
                         upbit.buy_market_order(COIN, buy_amount)
                         days += 1  # 분할 매수할 때마다 n일 증가
+                        if days >= 13:
+                            days = 3
             else:
                 if predicted_sell_price is None or now.hour == 9 and now.minute == 0:
                     predicted_sell_price = predict_sell_price(COIN)

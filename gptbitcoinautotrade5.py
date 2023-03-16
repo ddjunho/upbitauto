@@ -21,7 +21,7 @@ days = 3 # 시작은 최근 3일 동안의 데이터로 설정
 
 def get_target_price(ticker, k):
     # 최근 3+n일 동안의 데이터를 가져와서 매수 목표가 계산
-    df = pyupbit.get_ohlcv(ticker, interval="day", days+1)
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=days+1)
     target_price = df.iloc[0]['close'] + (df.iloc[0]['high'] - df.iloc[0]['low']) * k
     return target_price
   

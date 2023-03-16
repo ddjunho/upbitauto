@@ -17,11 +17,13 @@ sell_time = None
 buy_price = None
 
 COIN = "KRW-BTC" #코인명
-days = 3 # 시작은 최근 3일 동안의 데이터로 설정
 
-def get_target_price(ticker, k, days):
+def get_target_price(ticker, k):
     # 최근 3+n일 동안의 데이터를 가져와서 매수 목표가 계산
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=days+1)
+    days += 1  # 분할 매수할 때마다 n일 증가
+    if days >= 3:
+        days = 0
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=days+4)
     target_price = df.iloc[0]['close'] + (df.iloc[0]['high'] - df.iloc[0]['low']) * k
     return target_price
   
@@ -68,16 +70,13 @@ def run_auto_trade():
             start_time = get_start_time(COIN)
             end_time = start_time + datetime.timedelta(days=1)
             if start_time < now < end_time - datetime.timedelta(seconds=10):
-                target_price = get_target_price(COIN, 0.7, days)
+                target_price = get_target_price(COIN, 0.7)
                 current_price = get_current_price(COIN)
                 if target_price < current_price:
                     krw = get_balance("KRW")
                     if krw > 5000:
                         buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
                         upbit.buy_market_order(COIN, buy_amount)
-                        days += 1  # 분할 매수할 때마다 n일 증가
-                        if days >= 7:
-                            days = 3
             else:
                 if predicted_sell_price is None or now.hour == 9 and now.minute == 0:
                     predicted_sell_price = predict_sell_price(COIN)

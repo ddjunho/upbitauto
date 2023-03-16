@@ -8,8 +8,8 @@ import schedule
 
 access = "9PofI7vsCCOJEaSaxzZnW79HxcWHnQA2FbrQ7cWQ"
 secret = "diUxCv8gLAl2QQ6Q0RT620as3Vxaon4vYrqyxjMc"
-buy_unit = 0.1   # 분할 매수 금액 단위 설정
-sell_unit = 0.1  # 분할 매도 금액 단위 설정
+buy_unit = 0.25   # 분할 매수 금액 단위 설정
+sell_unit = 0.25  # 분할 매도 금액 단위 설정
 
 stop_loss = 0.95      # 손절률 5%
 bought = False
@@ -47,8 +47,8 @@ def get_current_price(ticker):
     return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
 
 def predict_sell_price(ticker):
-    # 3+n일 동안의 데이터를 가져와서 매도 예측 가격 계산
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=days)
+    # 3일 동안의 데이터를 가져와서 매도 예측 가격 계산
+    df = pyupbit.get_ohlcv(ticker, interval="3", count=days)
     ts = df['close']
     model = sm.tsa.ARIMA(ts, order=(2, 1, 2))
     results = model.fit(trend='nc', full_output=True, disp=1)
@@ -76,7 +76,7 @@ def run_auto_trade():
                         buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
                         upbit.buy_market_order(COIN, buy_amount)
                         days += 1  # 분할 매수할 때마다 n일 증가
-                        if days >= 13:
+                        if days >= 7:
                             days = 3
             else:
                 if predicted_sell_price is None or now.hour == 9 and now.minute == 0:

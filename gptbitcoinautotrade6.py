@@ -61,7 +61,6 @@ def predict_sell_price(ticker, k):
 upbit = pyupbit.Upbit(access, secret)
 
 # 자동매매 시작 함수
-predicted_sell_price=None
 krw = get_balance("KRW")
 def run_auto_trade():
     global predicted_sell_price

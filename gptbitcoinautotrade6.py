@@ -41,12 +41,12 @@ def get_balance(ticker):
 
 def get_current_price(ticker):
     # 현재가 조회
-    orderbook = pyupbit.get_orderbook(ticker=ticker)
-    if len(orderbook) > 0:
-        return orderbook[0]['orderbook_units'][0]['ask_price']
-    else:
+    try:
+        return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
+    except:
+        print("Error: Failed to get current price")
         return None
-
+    
 def predict_sell_price(ticker, k):
     # 7일 동안의 데이터를 가져와서 매도 예측 가격 계산
     df = pyupbit.get_ohlcv(ticker, interval="day", count=7)

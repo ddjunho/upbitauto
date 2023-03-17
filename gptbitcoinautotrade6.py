@@ -6,8 +6,8 @@ import numpy as np
 import statsmodels.api as sm
 import schedule
 
-access = "-"
-secret = "-"
+access = "9PofI7vsCCOJEaSaxzZnW79HxcWHnQA2FbrQ7cWQ"
+secret = "diUxCv8gLAl2QQ6Q0RT620as3Vxaon4vYrqyxjMc"
 buy_unit = 0.25   # 분할 매수 금액 단위 설정
 sell_unit = 0.5  # 분할 매도 금액 단위 설정
 
@@ -20,19 +20,13 @@ COIN = "KRW-BTC" #코인명
 
 def get_target_price(ticker, k):
     # 최근 3+n일 동안의 데이터를 가져와서 매수 목표가 계산
-    global day_s  # 분할 매수할 때마다 n일 증가
+    global day_s
+    day_s += 1  # 분할 매수할 때마다 n일 증가
     if day_s >= 3:
         day_s = 0
     df = pyupbit.get_ohlcv(ticker, interval="day", count=day_s+4)
     target_price = (df.iloc[day_s:day_s+3]['low'].mean()) * (2 - k)
-    day_s += 1
     return target_price
-  
-def get_start_time(ticker):
-    # 시작 시간 09:00
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=1)
-    start_time = df.index[0].replace(hour=9, minute=0, second=0, microsecond=0)
-    return start_time
   
 def get_balance(ticker):
     # 잔고 조회
@@ -70,16 +64,13 @@ def run_auto_trade():
     while True:
         try:
             now = datetime.datetime.now()
-            start_time = get_start_time(COIN)
-            end_time = start_time + datetime.timedelta(days=1)
-            if start_time < now < end_time - datetime.timedelta(seconds=10):
-                target_price = get_target_price(COIN, 0.8)
-                current_price = get_current_price(COIN)
-                if target_price < current_price:
-                    buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
-                    if get_balance("KRW") < krw * buy_unit:
-                        buy_amount = krw * 0.9995
-                    upbit.buy_market_order(COIN, buy_amount)
+            target_price = get_target_price(COIN, 0.8)
+            current_price = get_current_price(COIN)
+            if target_price < current_price:
+                buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
+                if get_balance("KRW") < krw * buy_unit:
+                    buy_amount = krw * 0.9995
+                upbit.buy_market_order(COIN, buy_amount)
             else:
                 if predicted_sell_price is None or now.hour == 9 and now.minute == 0:
                     predicted_sell_price = predict_sell_price(COIN, 0.8)

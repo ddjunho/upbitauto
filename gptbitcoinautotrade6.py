@@ -44,8 +44,7 @@ def get_current_price(ticker):
     try:
         return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
     except:
-        print("Error: Failed to get current price")
-        return None
+        return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["bid_price"]
     
 def predict_sell_price(ticker, k):
     # 7일 동안의 데이터를 가져와서 매도 예측 가격 계산

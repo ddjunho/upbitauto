@@ -54,13 +54,14 @@ def predict_sell_price(ticker, k):
     # ARIMA 모델 적용
     model = sm.tsa.arima.ARIMA(df['high'], order=(2, 1, 2))
     results = model.fit(method='statespace')
-    forecast = results.forecast(steps=1)[0][0]
+    forecast = results.forecast(steps=1).item()
     return (ts * k + forecast) / 2.0
 
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 
 # 자동매매 시작 함수
+predicted_sell_price = None
 krw = get_balance("KRW")
 def run_auto_trade():
     global predicted_sell_price

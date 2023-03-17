@@ -51,7 +51,7 @@ def get_current_price(ticker):
 
 def predict_sell_price(ticker):
     # 7일 동안의 데이터를 가져와서 매도 예측 가격 계산
-    df = pyupbit.get_ohlcv(ticker, interval="", count=7)
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=7)
     ts = df['close']
     model = sm.tsa.ARIMA(ts, order=(2, 1, 2))
     results = model.fit(trend='nc', full_output=True, disp=1)

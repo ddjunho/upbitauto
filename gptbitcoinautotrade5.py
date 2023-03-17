@@ -25,7 +25,7 @@ def get_target_price(ticker, k):
     if day_s >= 3:
         day_s = 0
     df = pyupbit.get_ohlcv(ticker, interval="day", count=day_s+4)
-    target_price = df.iloc[0]['close'] + (df.iloc[0]['high'] - df.iloc[0]['low']) * k
+    target_price = (df.iloc[day_s:day_s+3]['low'].mean()) * (2 - k)
     return target_price
   
 def get_start_time(ticker):

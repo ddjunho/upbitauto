@@ -29,9 +29,9 @@ def get_target_price(ticker, k):
     return target_price
   
 def get_start_time(ticker):
-    # 최근 1일 동안의 데이터를 가져와서 시작 시간 계산
+    # 시작 시간 09:00
     df = pyupbit.get_ohlcv(ticker, interval="day", count=1)
-    start_time = df.index[0]
+    start_time = df.index[0].replace(hour=9, minute=0, second=0, microsecond=0)
     return start_time
   
 def get_balance(ticker):

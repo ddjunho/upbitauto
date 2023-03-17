@@ -6,8 +6,8 @@ import numpy as np
 import statsmodels.api as sm
 import schedule
 
-access = "9PofI7vsCCOJEaSaxzZnW79HxcWHnQA2FbrQ7cWQ"
-secret = "diUxCv8gLAl2QQ6Q0RT620as3Vxaon4vYrqyxjMc"
+access = "-"
+secret = "-"
 buy_unit = 0.25   # 분할 매수 금액 단위 설정
 sell_unit = 0.5  # 분할 매도 금액 단위 설정
 

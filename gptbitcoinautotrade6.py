@@ -48,7 +48,7 @@ def predict_sell_price(ticker, k):
     df = pyupbit.get_ohlcv(ticker, interval="day", count=7)
     ts = df['high'].rolling(window=7).mean()[-1]
     # ARIMA 모델 적용
-    model = sm.tsa.ARIMA(df['high'], order=(2, 1, 2), trend='nc')
+    model = sm.tsa.ARIMA(df['high'], order=(2, 1, 2))
     results = model.fit(full_output=True, disp=1)
     forecast = results.forecast(steps=1)[0][0]
     return (ts * k + forecast) / 2.0

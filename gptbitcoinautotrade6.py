@@ -53,7 +53,7 @@ def predict_sell_price(ticker, k):
     ts = df['high'].rolling(window=7).mean()[-1]
     # ARIMA 모델 적용
     model = sm.tsa.arima.ARIMA(df['high'], order=(2, 1, 2))
-    results = model.fit(disp=False)
+    results = model.fit(method='statespace')
     forecast = results.forecast(steps=1)[0][0]
     return (ts * k + forecast) / 2.0
 

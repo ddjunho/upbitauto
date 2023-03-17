@@ -73,7 +73,7 @@ def run_auto_trade():
             start_time = get_start_time(COIN)
             end_time = start_time + datetime.timedelta(days=1)
             if start_time < now < end_time - datetime.timedelta(seconds=10):
-                target_price = get_target_price(COIN, 0.7)
+                target_price = get_target_price(COIN, 0.8)
                 current_price = get_current_price(COIN)
                 if target_price < current_price:
                     buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
@@ -82,14 +82,14 @@ def run_auto_trade():
                     upbit.buy_market_order(COIN, buy_amount)
             else:
                 if predicted_sell_price is None or now.hour == 9 and now.minute == 0:
-                    predicted_sell_price = predict_sell_price(COIN)
+                    predicted_sell_price = predict_sell_price(COIN, 0.8)
                 current_price = get_current_price(COIN)
                 if current_price >= predicted_sell_price:
                     btc = get_balance("BTC")
                     if btc > 0.00008:
                         sell_amount = btc * 1
                         upbit.sell_market_order(COIN, sell_amount)
-                        predicted_sell_price = max(predicted_sell_price, predict_sell_price(COIN))
+                        predicted_sell_price = max(predicted_sell_price, predict_sell_price(COIN, 0.8))
         except Exception as e:
             print(e)
             time.sleep(1)

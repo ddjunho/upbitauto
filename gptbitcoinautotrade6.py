@@ -20,12 +20,12 @@ COIN = "KRW-BTC" #코인명
 
 def get_target_price(ticker, k):
     # 최근 3+n일 동안의 데이터를 가져와서 매수 목표가 계산
-    global day_s
-    day_s += 1  # 분할 매수할 때마다 n일 증가
+    global day_s  # 분할 매수할 때마다 n일 증가
     if day_s >= 3:
         day_s = 0
     df = pyupbit.get_ohlcv(ticker, interval="day", count=day_s+4)
     target_price = (df.iloc[day_s:day_s+3]['low'].mean()) * (2 - k)
+    day_s += 1
     return target_price
   
 def get_start_time(ticker):

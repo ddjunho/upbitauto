@@ -41,7 +41,11 @@ def get_balance(ticker):
 
 def get_current_price(ticker):
     # 현재가 조회
-    return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
+    orderbook = pyupbit.get_orderbook(ticker=ticker)
+    if len(orderbook) > 0:
+        return orderbook[0]['orderbook_units'][0]['ask_price']
+    else:
+        return None
 
 def predict_sell_price(ticker, k):
     # 7일 동안의 데이터를 가져와서 매도 예측 가격 계산
@@ -49,7 +53,7 @@ def predict_sell_price(ticker, k):
     ts = df['high'].rolling(window=7).mean()[-1]
     # ARIMA 모델 적용
     model = sm.tsa.ARIMA(df['high'], order=(2, 1, 2))
-    results = model.fit()
+    results = model.fit(disp=0)
     forecast = results.forecast(steps=1)[0][0]
     return (ts * k + forecast) / 2.0
 

@@ -68,7 +68,7 @@ def run_auto_trade():
     while True:
         try:
             now = datetime.datetime.now()
-            target_price = get_target_price(COIN, 0.8)
+            target_price = get_target_price(COIN, 0.7)
             current_price = get_current_price(COIN)
             if target_price < current_price:
                 if get_balance("KRW") < krw * buy_unit:

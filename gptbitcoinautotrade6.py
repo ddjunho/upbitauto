@@ -32,9 +32,9 @@ def get_balance(ticker):
     # 잔고 조회
     balances = upbit.get_balances()
     for b in balances:
-        if b.get('currency') == ticker:
-            if b.get('balance') is not None:
-                return float(b.get('balance'))
+        if b['currency'] == ticker:
+            if b['balance'] is not None:
+                return float(b['balance'])
             else:
                 return 0
     return 0

@@ -23,8 +23,8 @@ def get_target_price(ticker, k):
     global day_s
     if day_s >= 3:
         day_s = 0
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=day_s+4)
-    target_price = (df.iloc[0:day_s+3]['low'].mean()) * (2 - k)
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=day_s+2)
+    target_price = (df.iloc[0:day_s+2]['low'].mean()) * (2 - k)
     day_s += 1  # 분할 매수할 때마다 n일 증가
     return target_price
   

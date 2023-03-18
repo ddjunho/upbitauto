@@ -62,6 +62,7 @@ upbit = pyupbit.Upbit(access, secret)
 # 자동매매 시작 함수
 predicted_sell_price = None
 krw = get_balance("KRW")
+buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 def run_auto_trade():
     global predicted_sell_price
     while True:
@@ -70,7 +71,6 @@ def run_auto_trade():
             target_price = get_target_price(COIN, 0.8)
             current_price = get_current_price(COIN)
             if target_price < current_price:
-                buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)

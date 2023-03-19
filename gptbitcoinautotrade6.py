@@ -18,7 +18,7 @@ buy_price = None
 day_s = 0
 COIN = "KRW-BTC" #코인명
 
- def get_target_price(ticker, k):
+def get_target_price(ticker, k):
     # 최근 n일 동안의 데이터를 가져와서 매수 목표가 계산
     global day_s
     if day_s >= 2:

@@ -68,7 +68,7 @@ def get_current_price(ticker):
     except:
         return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["bid_price"]
     
-def predict_sell_price(ticker, k):
+def predict_sell_price(ticker):
     # 7일 동안의 데이터를 가져와서 매도 예측 가격 계산
     df = pyupbit.get_ohlcv(ticker, interval="day", count=7)
     ts = df['high'].rolling(window=7).mean()[-1]
@@ -76,7 +76,7 @@ def predict_sell_price(ticker, k):
     model = sm.tsa.arima.ARIMA(df['high'], order=(2, 1, 2))
     results = model.fit(method='statespace')
     forecast = results.forecast(steps=1).item()
-    return forecast*k
+    return forecast*1
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 
@@ -97,14 +97,14 @@ def run_auto_trade():
                 upbit.buy_market_order(COIN, buy_amount)
             else:
                 if predicted_sell_price is None or now.hour == 9 and now.minute == 0:
-                    predicted_sell_price = predict_sell_price(COIN, 0.8)
+                    predicted_sell_price = predict_sell_price(COIN)
                 current_price = get_current_price(COIN)
                 if current_price >= predicted_sell_price:
                     btc = get_balance("BTC")
                     if btc > 0.00008:
                         sell_amount = btc * 1
                         upbit.sell_market_order(COIN, sell_amount)
-                        predicted_sell_price = max(predicted_sell_price, predict_sell_price(COIN, 0.8))
+                        predicted_sell_price = max(predicted_sell_price, predict_sell_price(COIN))
         except Exception as e:
             print(e)
             time.sleep(1)

@@ -29,6 +29,26 @@ def get_target_price(ticker, k):
     day_s += 1  # 분할 매수할 때마다 n일 증가
     return target_price
 
+def prophet_price_prediction(ticker):
+    #Prophet으로 당일 종가 가격 예측
+    global predicted_close_price
+    df = pyupbit.get_ohlcv(ticker, interval="minute60")
+    df = df.reset_index()
+    df['ds'] = df['index']
+    df['y'] = df['close']
+    data = df[['ds','y']]
+    model = Prophet()
+    model.fit(data)
+    future = model.make_future_dataframe(periods=24, freq='H')
+    forecast = model.predict(future)
+    closeDf = forecast[forecast['ds'] == forecast.iloc[-1]['ds'].replace(hour=9)]
+    if len(closeDf) == 0:
+        closeDf = forecast[forecast['ds'] == data.iloc[-1]['ds'].replace(hour=9)]
+    closeValue = closeDf['yhat'].values[0]
+    predicted_close_price = closeValue
+prophet_price_prediction("KRW-BTC")
+schedule.every().hour.do(lambda: prophet_price_prediction("KRW-BTC"))
+
 def get_balance(ticker):
     # 잔고 조회
     balances = upbit.get_balances()
@@ -71,7 +91,7 @@ def run_auto_trade():
             now = datetime.datetime.now()
             target_price = get_target_price(COIN, 0.7)
             current_price = get_current_price(COIN)
-            if target_price < current_price:
+            if target_price < current_price and current_price < predicted_close_price:
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)

@@ -76,8 +76,7 @@ def predict_sell_price(ticker, k):
     model = sm.tsa.arima.ARIMA(df['high'], order=(2, 1, 2))
     results = model.fit(method='statespace')
     forecast = results.forecast(steps=1).item()
-    return (ts * k + forecast) / 2.0
-
+    return forecast*k
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 

@@ -69,9 +69,9 @@ def get_current_price(ticker):
         return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["bid_price"]
     
 def predict_sell_price(ticker):
-    # 7일 동안의 데이터를 가져와서 매도 예측 가격 계산
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=7)
-    ts = df['high'].rolling(window=7).mean()[-1]
+    # 3일 동안의 데이터를 가져와서 매도 예측 가격 계산
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=3)
+    ts = df['high'].rolling(window=3).mean()[-1]
     # ARIMA 모델 적용
     model = sm.tsa.arima.ARIMA(df['high'], order=(2, 1, 2))
     results = model.fit(method='statespace')

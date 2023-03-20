@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 import schedule
+from fbprophet import Prophet
 
 access = "-"
 secret = "-"

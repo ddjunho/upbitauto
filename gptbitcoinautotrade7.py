@@ -12,7 +12,7 @@ buy_unit = 0.1   # 분할 매수 금액 단위 설정
 k = 0.35
 COIN = "KRW-BTC" #코인명
 
-def get_target_price(ticker, 0.7):
+def get_target_price(ticker):
     # 30일 동안의 데이터를 가져와서 매수 예측 가격 계산
     df = pyupbit.get_ohlcv(ticker, interval="day", count=30)
     # ARIMA 모델 적용

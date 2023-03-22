@@ -15,11 +15,12 @@ COIN = "KRW-BTC" #코인명
 def get_target_price(ticker):
     # 30일 동안의 데이터를 가져와서 매수 예측 가격 계산
     df = pyupbit.get_ohlcv(ticker, interval="day", count=30)
+    ds = pyupbit.get_ohlcv(ticker, interval="day", count=2)
     # ARIMA 모델 적용
     model = sm.tsa.arima.ARIMA(df['low'], order=(2, 1, 2))
     results = model.fit(method='statespace')
     forecast = results.forecast(steps=1).item()
-    return forecast + (df.iloc[0]['high'] - df.iloc[0]['low']) * k
+    return forecast + (ds.iloc[0]['high'] - ds.iloc[0]['low']) * k
 
 def stop_loss(ticker):
     # 2일 동안의 데이터를 가져와서 손절각보기
@@ -51,11 +52,12 @@ def get_current_price(ticker):
 def predict_sell_price(ticker):
     # 30일 동안의 데이터를 가져와서 매도 예측 가격 계산
     df = pyupbit.get_ohlcv(ticker, interval="day", count=30)
+    ds = pyupbit.get_ohlcv(ticker, interval="day", count=2)
     # ARIMA 모델 적용
     model = sm.tsa.arima.ARIMA(df['high'], order=(2, 1, 2))
     results = model.fit(method='statespace')
     forecast = results.forecast(steps=1).item()
-    return forecast - (df.iloc[0]['high'] - df.iloc[0]['low']) * k
+    return forecast - (ds.iloc[0]['high'] - ds.iloc[0]['low']) * k
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 

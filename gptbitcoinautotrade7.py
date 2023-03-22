@@ -5,50 +5,35 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 import schedule
-from fbprophet import Prophet
 
 access = "-"
 secret = "-"
 buy_unit = 0.25   # 분할 매수 금액 단위 설정
 sell_unit = 0.5  # 분할 매도 금액 단위 설정
 
-stop_loss = 0.95      # 손절률 5%
 bought = False
 sell_time = None
 buy_price = None
-day_s = 0
+k = 0.35
 COIN = "KRW-BTC" #코인명
 
-def get_target_price(ticker, k):
-    # 최근 n일 동안의 데이터를 가져와서 매수 목표가 계산
-    global day_s
-    if day_s >= 2:
-        day_s = 0
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=day_s+2)
-    df_last3 = df.iloc[0:day_s+1]
-    target_price = df_last3['close'].mean() + (df_last3['high'] - df_last3['low']).mean() * k
-    day_s += 1  # 분할 매수할 때마다 n일 증가
-    return target_price
+def get_target_price(ticker, 0.7):
+    # 30일 동안의 데이터를 가져와서 매수 예측 가격 계산
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=30)
+    # ARIMA 모델 적용
+    model = sm.tsa.arima.ARIMA(df['low'], order=(2, 1, 2))
+    results = model.fit(method='statespace')
+    forecast = results.forecast(steps=1).item()
+    return forecast + (df.iloc[0]['high'] - df.iloc[0]['low']) * k
 
-def prophet_price_prediction(ticker):
-    #Prophet으로 당일 종가 가격 예측
-    global predicted_close_price
-    df = pyupbit.get_ohlcv(ticker, interval="minute60")
-    df = df.reset_index()
-    df['ds'] = df['index']
-    df['y'] = df['close']
-    data = df[['ds','y']]
-    model = Prophet()
-    model.fit(data)
-    future = model.make_future_dataframe(periods=24, freq='H')
-    forecast = model.predict(future)
-    closeDf = forecast[forecast['ds'] == forecast.iloc[-1]['ds'].replace(hour=9)]
-    if len(closeDf) == 0:
-        closeDf = forecast[forecast['ds'] == data.iloc[-1]['ds'].replace(hour=9)]
-    closeValue = closeDf['yhat'].values[0]
-    predicted_close_price = closeValue
-prophet_price_prediction("KRW-BTC")
-schedule.every().hour.do(lambda: prophet_price_prediction("KRW-BTC"))
+def stop_loss(ticker):
+    # 2일 동안의 데이터를 가져와서 손절각보기
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=2)
+    # ARIMA 모델 적용
+    model = sm.tsa.arima.ARIMA(df['low'], order=(2, 1, 2))
+    results = model.fit(method='statespace')
+    forecast = results.forecast(steps=1).item()
+    return forecast
 
 def get_balance(ticker):
     # 잔고 조회
@@ -69,41 +54,43 @@ def get_current_price(ticker):
         return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["bid_price"]
     
 def predict_sell_price(ticker):
-    # 7일 동안의 데이터를 가져와서 매도 예측 가격 계산
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=7)
+    # 30일 동안의 데이터를 가져와서 매도 예측 가격 계산
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=30)
     # ARIMA 모델 적용
     model = sm.tsa.arima.ARIMA(df['high'], order=(2, 1, 2))
     results = model.fit(method='statespace')
     forecast = results.forecast(steps=1).item()
-    return forecast
+    return forecast - (df.iloc[0]['high'] - df.iloc[0]['low']) * k
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 
 # 자동매매 시작 함수
-predicted_sell_price = None
 krw = get_balance("KRW")
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
+target_price = get_target_price(COIN)
+predicted_sell_price = predict_sell_price(COIN)
+current_price = get_current_price(COIN)
+stop_loss = stop_loss(ticker)
 def run_auto_trade():
     global predicted_sell_price
     while True:
         try:
             now = datetime.datetime.now()
-            target_price = get_target_price(COIN, 0.7)
-            current_price = get_current_price(COIN)
-            if target_price < current_price and current_price < predicted_close_price:
+            if now.hour == 9 and now.minute == 0:
+                target_price = get_target_price(COIN)
+                predicted_sell_price = predict_sell_price(COIN)
+                current_price = get_current_price(COIN)
+                stop_loss = stop_loss(ticker)
+            if target_price >= current_price and target_price < predicted_sell_price and stop_loss < current_price:
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)
             else:
-                if predicted_sell_price is None or now.hour == 9 and now.minute == 0:
-                    predicted_sell_price = predict_sell_price(COIN)
-                current_price = get_current_price(COIN)
                 if current_price >= predicted_sell_price:
                     btc = get_balance("BTC")
                     if btc > 0.00008:
                         sell_amount = btc * 1
                         upbit.sell_market_order(COIN, sell_amount)
-                        predicted_sell_price = max(predicted_sell_price, predict_sell_price(COIN))
         except Exception as e:
             print(e)
             time.sleep(1)

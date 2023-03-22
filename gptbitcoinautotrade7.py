@@ -65,7 +65,7 @@ buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 target_price = get_target_price(COIN)
 predicted_sell_price = predict_sell_price(COIN)
 current_price = get_current_price(COIN)
-stop_loss = stop_loss(ticker)
+stop_loss = stop_loss(COIN)
 def run_auto_trade():
     global predicted_sell_price
     while True:
@@ -77,7 +77,7 @@ def run_auto_trade():
                 target_price = get_target_price(COIN)
                 predicted_sell_price = predict_sell_price(COIN)
                 current_price = get_current_price(COIN)
-                stop_loss = stop_loss(ticker)
+                stop_loss = stop_loss(COIN)
             if target_price >= current_price and target_price < predicted_sell_price and stop_loss < current_price:
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995

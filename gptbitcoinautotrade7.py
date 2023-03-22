@@ -8,12 +8,7 @@ import schedule
 
 access = "-"
 secret = "-"
-buy_unit = 0.25   # 분할 매수 금액 단위 설정
-sell_unit = 0.5  # 분할 매도 금액 단위 설정
-
-bought = False
-sell_time = None
-buy_price = None
+buy_unit = 0.1   # 분할 매수 금액 단위 설정
 k = 0.35
 COIN = "KRW-BTC" #코인명
 

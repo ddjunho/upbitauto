@@ -6,9 +6,8 @@ import numpy as np
 import schedule
 import tensorflow as tf
 from sklearn.preprocessing import MinMaxScaler
+from upbit_keys import access, secret
 
-access = "-"
-secret = "-"
 buy_unit = 0.1   # 분할 매수 금액 단위 설정
 k = 0.35
 COIN = "KRW-BTC" #코인명

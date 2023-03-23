@@ -74,7 +74,7 @@ def get_current_price(ticker):
     except:
         return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["bid_price"]
     
-def  predict_sell_price(ticker): #매도최고가예측
+def predict_sell_price(ticker): #매도최고가예측
     # 데이터 불러오기
     df = pyupbit.get_ohlcv(ticker, interval="minute15", count=192)
     # 입력 데이터 전처리

@@ -22,7 +22,7 @@ vola_break_price = vola_break(COIN)
     
 def get_target_price(ticker): #매수최저가예측
     # 데이터 불러오기
-    df = pyupbit.get_ohlcv(ticker, interval="minute15", count=192)
+    df = pyupbit.get_ohlcv(ticker, interval="minute30", count=96)
     # 입력 데이터 전처리
     X = df[['open', 'high', 'low', 'close', 'volume']].values  # 입력 데이터는 open, high, low, close, volume 5가지 종류
     X_scaler = MinMaxScaler()
@@ -34,14 +34,14 @@ def get_target_price(ticker): #매수최저가예측
     # 학습 데이터 생성
     X_train = []
     y_train = []
-    for i in range(192, len(X)):
+    for i in range(96, len(X)):
         X_train.append(X[i - 192:i, :])
         y_train.append(y[i, 0])
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(128, input_shape=(192, 5)),
+        tf.keras.layers.LSTM(128, input_shape=(96, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(1)
     ])
@@ -50,7 +50,7 @@ def get_target_price(ticker): #매수최저가예측
     # 학습
     model.fit(X_train, y_train, epochs=100, verbose=0)
     # 새로운 데이터에 대한 예측
-    last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-192:].values  # 가장 최근 192개 데이터
+    last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-96:].values  # 가장 최근 192개 데이터
     last_data = X_scaler.transform(last_data.reshape((1, -1, 5)))  # 입력 데이터 전처리
     predicted_price = model.predict(last_data)  # 예측 결과
     predicted_price = y_scaler.inverse_transform(predicted_price)
@@ -76,7 +76,7 @@ def get_current_price(ticker):
     
 def predict_sell_price(ticker):
     # 데이터 불러오기
-    df = pyupbit.get_ohlcv(ticker, interval="minute15", count=192)
+    df = pyupbit.get_ohlcv(ticker, interval="minute30", count=96)
     # 입력 데이터 전처리
     X = df[['open', 'high', 'low', 'close', 'volume']].values  # 입력 데이터는 open, high, low, close, volume 5가지 종류
     X_scaler = MinMaxScaler()
@@ -88,14 +88,14 @@ def predict_sell_price(ticker):
     # 학습 데이터 생성
     X_train = []
     y_train = []
-    for i in range(192, len(X)):
-        X_train.append(X[i - 192:i, :])
+    for i in range(96, len(X)):
+        X_train.append(X[i - 96:i, :])
         y_train.append(y[i, 0])
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(128, input_shape=(192, 5)),
+        tf.keras.layers.LSTM(128, input_shape=(96, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(1)
     ])
@@ -104,7 +104,7 @@ def predict_sell_price(ticker):
     # 학습
     model.fit(X_train, y_train, epochs=100, verbose=0)
     # 새로운 데이터에 대한 예측
-    last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-192:].values  # 가장 최근 192개 데이터
+    last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-96:].values  # 가장 최근 192개 데이터
     last_data = X_scaler.transform(last_data.reshape((1, -1, 5)))  # 입력 데이터 전처리
     predicted_price = model.predict(last_data)  # 예측 결과
     predicted_price = y_scaler.inverse_transform(predicted_price)
@@ -127,6 +127,7 @@ def run_auto_trade():
             if now.hour == 9 and now.minute == 0:
                 krw = get_balance("KRW")
                 buy_amount = krw * 0.9995 * buy_unit
+            if now.minute % 30 == 0:
                 target_price = get_target_price(COIN)
                 predicted_sell_price = predict_sell_price(COIN)
                 current_price = get_current_price(COIN)

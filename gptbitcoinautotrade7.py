@@ -3,8 +3,9 @@ import pyupbit
 import datetime
 import pandas as pd
 import numpy as np
-import statsmodels.api as sm
 import schedule
+import tensorflow as tf
+from sklearn.preprocessing import MinMaxScaler
 
 access = "-"
 secret = "-"
@@ -13,26 +14,40 @@ k = 0.35
 COIN = "KRW-BTC" #코인명
 day_s = 0  #15*96은 1일
 
-def get_target_price(ticker):
-    # 30일 동안의 데이터를 가져와서 매수 예측 가격 계산
-    if day_s >= 384:
-        day_s = 0
+def get_target_price(ticker): #매수최저가예측
+    # 데이터 불러오기
     df = pyupbit.get_ohlcv(ticker, interval="minute15", count=192)
-    # ARIMA 모델 적용
-    model = sm.tsa.arima.ARIMA(df['low'], order=(2, 1, 2))
-    results = model.fit(method='statespace')
-    forecast = results.forecast(steps=1).item()
-    day_s += 96
-    return forecast
-
-def stop_loss(ticker):
-    # 2일 동안의 데이터를 가져와서 손절각보기
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=2)
-    # ARIMA 모델 적용
-    model = sm.tsa.arima.ARIMA(df['low'], order=(2, 1, 2))
-    results = model.fit(method='statespace')
-    forecast = results.forecast(steps=1).item()
-    return forecast
+    # 입력 데이터 전처리
+    X = df[['high', 'low', 'volume']].values  # 입력 데이터는 high, low, volume 3가지 종류
+    X_scaler = MinMaxScaler()
+    X = X_scaler.fit_transform(X)
+    # 출력 데이터 전처리
+    y = df['low'].values  # 출력 데이터는 low 가격
+    y_scaler = MinMaxScaler()
+    y = y_scaler.fit_transform(y.reshape((-1, 1)))
+    # 학습 데이터 생성
+    X_train = []
+    y_train = []
+    for i in range(192, len(X)):
+        X_train.append(X[i - 192:i, :])
+        y_train.append(y[i, 0])
+    X_train = np.array(X_train)
+    y_train = np.array(y_train)
+    # Tensorflow 모델 구성
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.LSTM(128, input_shape=(X_train.shape[1], X_train.shape[2])),
+        tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dense(1)
+    ])
+    # 모델 컴파일
+    model.compile(optimizer='adam', loss='mse')
+    # 학습
+    model.fit(X_train, y_train, epochs=100, verbose=0)
+    # 새로운 데이터에 대한 예측
+    last_data = df[['high', 'low', 'volume']].iloc[-192:].values  # 가장 최근 192개 데이터
+    last_data = X_scaler.transform(last_data.reshape((1, -1, 3)))  # 입력 데이터 전처리
+    predicted_price = model.predict(last_data)  # 예측 결과
+    predicted_price = y_scaler.inverse_transform(predicted_price)
 
 def get_balance(ticker):
     # 잔고 조회
@@ -52,15 +67,41 @@ def get_current_price(ticker):
     except:
         return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["bid_price"]
     
-def predict_sell_price(ticker):
-    # 30일 동안의 데이터를 가져와서 매도 예측 가격 계산
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=30)
-    ds = pyupbit.get_ohlcv(ticker, interval="day", count=2)
-    # ARIMA 모델 적용
-    model = sm.tsa.arima.ARIMA(df['high'], order=(2, 1, 2))
-    results = model.fit(method='statespace')
-    forecast = results.forecast(steps=1).item()
-    return forecast - (ds.iloc[0]['high'] - ds.iloc[0]['low']) * k
+def  predict_sell_price(ticker): #매도최고가예측
+    # 데이터 불러오기
+    df = pyupbit.get_ohlcv(ticker, interval="minute15", count=192)
+    # 입력 데이터 전처리
+    X = df[['high', 'low', 'volume']].values  # 입력 데이터는 high, low, volume 3가지 종류
+    X_scaler = MinMaxScaler()
+    X = X_scaler.fit_transform(X)
+    # 출력 데이터 전처리
+    y = df['high'].values  # 출력 데이터는 high 가격
+    y_scaler = MinMaxScaler()
+    y = y_scaler.fit_transform(y.reshape((-1, 1)))
+    # 학습 데이터 생성
+    X_train = []
+    y_train = []
+    for i in range(192, len(X)):
+        X_train.append(X[i - 192:i, :])
+        y_train.append(y[i, 0])
+    X_train = np.array(X_train)
+    y_train = np.array(y_train)
+    # Tensorflow 모델 구성
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.LSTM(128, input_shape=(X_train.shape[1], X_train.shape[2])),
+        tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dense(1)
+    ])
+    # 모델 컴파일
+    model.compile(optimizer='adam', loss='mse')
+    # 학습
+    model.fit(X_train, y_train, epochs=100, verbose=0)
+    # 새로운 데이터에 대한 예측
+    last_data = df[['high', 'low', 'volume']].iloc[-192:].values  # 가장 최근 192개 데이터
+    last_data = X_scaler.transform(last_data.reshape((1, -1, 3)))  # 입력 데이터 전처리
+    predicted_price = model.predict(last_data)  # 예측 결과
+    predicted_price = y_scaler.inverse_transform(predicted_price)
+    
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 
@@ -83,7 +124,7 @@ def run_auto_trade():
                 predicted_sell_price = predict_sell_price(COIN)
                 current_price = get_current_price(COIN)
                 stop_loss = stop_loss(COIN)
-            if target_price >= current_price and target_price < predicted_sell_price and stop_loss < current_price:
+            if target_price >= current_price and target_price < predicted_sell_price:
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)

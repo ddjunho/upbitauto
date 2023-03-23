@@ -116,9 +116,6 @@ upbit = pyupbit.Upbit(access, secret)
 # 자동매매 시작 함수
 krw = get_balance("KRW")
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
-target_price = get_target_price(COIN)
-predicted_sell_price = predict_sell_price(COIN)
-current_price = get_current_price(COIN)
 def run_auto_trade():
     while True:
         try:

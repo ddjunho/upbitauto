@@ -21,6 +21,7 @@ def vola_break(ticker):
 vola_break_price = vola_break(COIN)
     
 def get_target_price(ticker): #매수최저가예측
+    tf.config.run_functions_eagerly(True)
     # 데이터 불러오기
     df = pyupbit.get_ohlcv(ticker, interval="minute15", count=192)
     # 입력 데이터 전처리
@@ -75,6 +76,7 @@ def get_current_price(ticker):
         return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["bid_price"]
     
 def predict_sell_price(ticker): #매도최고가예측
+    tf.config.run_functions_eagerly(True)
     # 데이터 불러오기
     df = pyupbit.get_ohlcv(ticker, interval="minute15", count=192)
     # 입력 데이터 전처리

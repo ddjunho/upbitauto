@@ -14,6 +14,13 @@ k = 0.35
 COIN = "KRW-BTC" #코인명
 day_s = 0  #15*96은 1일
 
+def vola_break(ticker):
+    # 변동성 돌파 전략
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=2)
+    vola_break_price = (df.iloc[0]['high'] - df.iloc[0]['low']) * k
+    return vola_break_price
+vola_break_price = vola_break(COIN)
+    
 def get_target_price(ticker): #매수최저가예측
     # 데이터 불러오기
     df = pyupbit.get_ohlcv(ticker, interval="minute15", count=192)
@@ -48,7 +55,8 @@ def get_target_price(ticker): #매수최저가예측
     last_data = X_scaler.transform(last_data.reshape((1, -1, 3)))  # 입력 데이터 전처리
     predicted_price = model.predict(last_data)  # 예측 결과
     predicted_price = y_scaler.inverse_transform(predicted_price)
-
+    return predicted_price + vola_break_price
+    
 def get_balance(ticker):
     # 잔고 조회
     balances = upbit.get_balances()
@@ -101,6 +109,7 @@ def  predict_sell_price(ticker): #매도최고가예측
     last_data = X_scaler.transform(last_data.reshape((1, -1, 3)))  # 입력 데이터 전처리
     predicted_price = model.predict(last_data)  # 예측 결과
     predicted_price = y_scaler.inverse_transform(predicted_price)
+    return predicted_price - vola_break_price
     
 # 로그인
 upbit = pyupbit.Upbit(access, secret)

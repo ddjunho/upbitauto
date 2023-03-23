@@ -139,9 +139,8 @@ def run_auto_trade():
                         upbit.sell_market_order(COIN, sell_amount)
         except Exception as e:
             print(e)
-            time.sleep(1)
 # 스케줄러 설정
-schedule.every(1).seconds.do(run_auto_trade)
+schedule.every(15).minutes.do(run_auto_trade)
 print("autotrade start")
 
 # 스케줄러 실행

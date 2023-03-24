@@ -77,6 +77,7 @@ def predict_target_price(ticker, target_type):
     # 예측할 데이터의 shape를 (1, 365, 5)로 변경
     last_data = np.expand_dims(last_data, axis=0)
     predicted_price = model.predict(last_data)
+    predicted_price = y_scaler.inverse_transform(predicted_price)
     predicted_price = list(predicted_price.flatten())
     predicted_price = [float(p) for p in predicted_price]
     predicted_price = [predicted_price]

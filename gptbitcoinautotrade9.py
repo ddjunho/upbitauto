@@ -53,7 +53,9 @@ def get_target_price(ticker):
     model.fit(X_train, y_train, epochs=100, verbose=1)
     # 새로운 데이터에 대한 예측
     last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-365:].values
-    last_data = X_scaler.transform(last_data.reshape((1, -1, 5)))
+    last_data_mean = last_data.mean(axis=0)
+    last_data_std = last_data.std(axis=0)
+    last_data = (last_data - last_data_mean) / last_data_std
     predicted_price = model.predict(last_data)
     predicted_price = y_scaler.inverse_transform(predicted_price)
     return predicted_price + vola_break_price
@@ -110,7 +112,9 @@ def predict_sell_price(ticker):
     model.fit(X_train, y_train, epochs=100, verbose=1)
     # 새로운 데이터에 대한 예측
     last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-365:].values
-    last_data = X_scaler.transform(last_data.reshape((1, -1, 5)))
+    last_data_mean = last_data.mean(axis=0)
+    last_data_std = last_data.std(axis=0)
+    last_data = (last_data - last_data_mean) / last_data_std
     predicted_price = model.predict(last_data)
     predicted_price = y_scaler.inverse_transform(predicted_price)
     return predicted_price - vola_break_price

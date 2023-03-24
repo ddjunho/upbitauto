@@ -87,9 +87,6 @@ def predict_target_price(ticker, target_type):
         
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
-target_price = None
-predicted_sell_price = None
-current_price = None
 target_price = predict_target_price(COIN, 'low')
 predicted_sell_price = predict_target_price(COIN, 'high')
 current_price = get_current_price(COIN)
@@ -97,11 +94,14 @@ current_price = get_current_price(COIN)
 krw = get_balance("KRW")
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 def run_auto_trade():
+    glovel target_price 
+    global predicted_sell_price
+    global current_price
     while True:
         try:
             now = datetime.datetime.now()
             
-            if now.hour == 9 and now.minute == 0 or target_price == None:
+            if now.hour == 9 and now.minute == 0 :
                 krw = get_balance("KRW")
                 buy_amount = krw * 0.9995 * buy_unit
                 target_price = predict_target_price(COIN, 'low')

@@ -9,7 +9,7 @@ from sklearn.preprocessing import MinMaxScaler
 from upbit_keys import access, secret
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.1   # 분할 매수 금액 단위 설정
-k = 0.1
+k = 0.35
 COIN = "KRW-BTC" #코인명
 day_s = 0  #15*96은 1일
 
@@ -20,29 +20,31 @@ def vola_break(ticker):
     return vola_break_price
 vola_break_price = vola_break(COIN)
     
-def get_target_price(ticker): #매수최저가예측
+def get_target_price(ticker):
     # 데이터 불러오기
-    df = pyupbit.get_ohlcv(ticker, interval="minute30", count=96)
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=366)
     # 입력 데이터 전처리
     X = df[['open', 'high', 'low', 'close', 'volume']].values  # 입력 데이터는 open, high, low, close, volume 5가지 종류
     X_scaler = MinMaxScaler()
     X = X_scaler.fit_transform(X)
     # 출력 데이터 전처리
-    y = df['low'].values  # 출력 데이터는 high 가격
+    y = df['low'].values  # 출력 데이터는 low 가격
     y_scaler = MinMaxScaler()
     y = y_scaler.fit_transform(y.reshape((-1, 1)))
     # 학습 데이터 생성
     X_train = []
     y_train = []
-    for i in range(96, len(X)):
-        X_train.append(X[i - 96:i, :])
+    for i in range(365, len(X)):
+        X_train.append(X[i - 365:i, :])
         y_train.append(y[i, 0])
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(128, input_shape=(96, 5)),
+        tf.keras.layers.LSTM(128, input_shape=(365, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dense(32, activation='relu'),
         tf.keras.layers.Dense(1)
     ])
     # 모델 컴파일
@@ -50,12 +52,12 @@ def get_target_price(ticker): #매수최저가예측
     # 학습
     model.fit(X_train, y_train, epochs=100, verbose=1)
     # 새로운 데이터에 대한 예측
-    last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-96:].values  # 가장 최근 192개 데이터
+    last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-365:].values  # 가장 최근 365개 데이터
     last_data = X_scaler.transform(last_data.reshape((1, -1, 5)))  # 입력 데이터 전처리
     predicted_price = model.predict(last_data)  # 예측 결과
     predicted_price = y_scaler.inverse_transform(predicted_price)
     return predicted_price + vola_break_price
-    
+
 def get_balance(ticker):
     # 잔고 조회
     balances = upbit.get_balances()
@@ -76,7 +78,7 @@ def get_current_price(ticker):
     
 def predict_sell_price(ticker):
     # 데이터 불러오기
-    df = pyupbit.get_ohlcv(ticker, interval="minute30", count=96)
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=366)
     # 입력 데이터 전처리
     X = df[['open', 'high', 'low', 'close', 'volume']].values  # 입력 데이터는 open, high, low, close, volume 5가지 종류
     X_scaler = MinMaxScaler()
@@ -88,15 +90,17 @@ def predict_sell_price(ticker):
     # 학습 데이터 생성
     X_train = []
     y_train = []
-    for i in range(96, len(X)):
-        X_train.append(X[i - 96:i, :])
+    for i in range(365, len(X)):
+        X_train.append(X[i - 365:i, :])
         y_train.append(y[i, 0])
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(128, input_shape=(96, 5)),
+        tf.keras.layers.LSTM(128, input_shape=(365, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dense(32, activation='relu'),
         tf.keras.layers.Dense(1)
     ])
     # 모델 컴파일
@@ -104,11 +108,11 @@ def predict_sell_price(ticker):
     # 학습
     model.fit(X_train, y_train, epochs=100, verbose=1)
     # 새로운 데이터에 대한 예측
-    last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-96:].values  # 가장 최근 192개 데이터
+    last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-365:].values  # 가장 최근 365개 데이터
     last_data = X_scaler.transform(last_data.reshape((1, -1, 5)))  # 입력 데이터 전처리
     predicted_price = model.predict(last_data)  # 예측 결과
     predicted_price = y_scaler.inverse_transform(predicted_price)
-    return predicted_price - vola_break_price
+    return predicted_price + vola_break_price
     
 # 로그인
 upbit = pyupbit.Upbit(access, secret)

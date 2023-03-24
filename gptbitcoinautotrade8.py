@@ -35,7 +35,7 @@ def get_target_price(ticker): #매수최저가예측
     X_train = []
     y_train = []
     for i in range(96, len(X)):
-        X_train.append(X[i - 192:i, :])
+        X_train.append(X[i - 96:i, :])
         y_train.append(y[i, 0])
     X_train = np.array(X_train)
     y_train = np.array(y_train)

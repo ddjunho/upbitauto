@@ -94,7 +94,7 @@ current_price = get_current_price(COIN)
 krw = get_balance("KRW")
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 def run_auto_trade():
-    glovel target_price 
+    global target_price 
     global predicted_sell_price
     global current_price
     while True:

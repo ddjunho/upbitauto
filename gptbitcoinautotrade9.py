@@ -99,6 +99,7 @@ def run_auto_trade():
     global predicted_sell_price
     global current_price
     global buy_amount
+    global krw
     while True:
         try:
             now = datetime.datetime.now()

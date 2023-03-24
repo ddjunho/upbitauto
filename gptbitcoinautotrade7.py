@@ -25,15 +25,8 @@ def get_target_price(ticker):
     df = pyupbit.get_ohlcv(ticker, interval="day", count=366)
     # 입력 데이터 전처리
     X = df[['open', 'high', 'low', 'close', 'volume']].values  # 입력 데이터는 open, high, low, close, volume 5가지 종류
-    num_timesteps = 365
-    num_features = 5
-    num_samples = len(X) - num_timesteps
-    # Reshape input data to 2-dimensional array
-    X = X.reshape(-1, num_timesteps * num_features)
     X_scaler = MinMaxScaler()
     X = X_scaler.fit_transform(X)
-    # Reshape back to original shape
-    X = X.reshape(num_samples, num_timesteps, num_features)
     # 출력 데이터 전처리
     y = df['low'].values  # 출력 데이터는 low 가격
     y_scaler = MinMaxScaler()
@@ -41,14 +34,14 @@ def get_target_price(ticker):
     # 학습 데이터 생성
     X_train = []
     y_train = []
-    for i in range(num_samples):
-        X_train.append(X[i])
-        y_train.append(y[i + num_timesteps])
+    for i in range(365, len(X)):
+        X_train.append(X[i - 365:i, :])
+        y_train.append(y[i, 0])
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(128, input_shape=(num_timesteps, num_features)),
+        tf.keras.layers.LSTM(128, input_shape=(365, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(32, activation='relu'),
@@ -59,9 +52,8 @@ def get_target_price(ticker):
     # 학습
     model.fit(X_train, y_train, epochs=100, verbose=1)
     # 새로운 데이터에 대한 예측
-    last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-num_timesteps:].values  # 가장 최근 365개 데이터
-    last_data = X_scaler.transform(last_data.reshape((1, -1)))  # 입력 데이터 전처리
-    last_data = last_data.reshape(-1, num_timesteps, num_features)
+    last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-365:].values  # 가장 최근 365개 데이터
+    last_data = X_scaler.transform(last_data.reshape((1, -1, 5)))  # 입력 데이터 전처리
     predicted_price = model.predict(last_data)  # 예측 결과
     predicted_price = y_scaler.inverse_transform(predicted_price)
     return predicted_price + vola_break_price
@@ -89,15 +81,8 @@ def predict_sell_price(ticker):
     df = pyupbit.get_ohlcv(ticker, interval="day", count=366)
     # 입력 데이터 전처리
     X = df[['open', 'high', 'low', 'close', 'volume']].values  # 입력 데이터는 open, high, low, close, volume 5가지 종류
-    num_timesteps = 365
-    num_features = 5
-    num_samples = len(X) - num_timesteps
-    # Reshape input data to 2-dimensional array
-    X = X.reshape(-1, num_timesteps * num_features)
     X_scaler = MinMaxScaler()
     X = X_scaler.fit_transform(X)
-    # Reshape back to original shape
-    X = X.reshape(num_samples, num_timesteps, num_features)
     # 출력 데이터 전처리
     y = df['high'].values  # 출력 데이터는 high 가격
     y_scaler = MinMaxScaler()
@@ -105,14 +90,14 @@ def predict_sell_price(ticker):
     # 학습 데이터 생성
     X_train = []
     y_train = []
-    for i in range(num_samples):
-        X_train.append(X[i])
-        y_train.append(y[i + num_timesteps])
+    for i in range(365, len(X)):
+        X_train.append(X[i - 365:i, :])
+        y_train.append(y[i, 0])
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(128, input_shape=(num_timesteps, num_features)),
+        tf.keras.layers.LSTM(128, input_shape=(365, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(32, activation='relu'),
@@ -123,9 +108,8 @@ def predict_sell_price(ticker):
     # 학습
     model.fit(X_train, y_train, epochs=100, verbose=1)
     # 새로운 데이터에 대한 예측
-    last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-num_timesteps:].values  # 가장 최근 365개 데이터
-    last_data = X_scaler.transform(last_data.reshape((1, -1)))  # 입력 데이터 전처리
-    last_data = last_data.reshape(-1, num_timesteps, num_features)
+    last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-365:].values  # 가장 최근 365개 데이터
+    last_data = X_scaler.transform(last_data.reshape((1, -1, 5)))  # 입력 데이터 전처리
     predicted_price = model.predict(last_data)  # 예측 결과
     predicted_price = y_scaler.inverse_transform(predicted_price)
     return predicted_price - vola_break_price

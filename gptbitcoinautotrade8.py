@@ -46,7 +46,7 @@ def get_target_price(ticker): #매수최저가예측
         tf.keras.layers.Dense(1)
     ])
     # 모델 컴파일
-    model.compile(optimizer='adam', loss='mse')
+    model.compile(optimizer='adam', loss='mse', run_eagerly=True)
     # 학습
     model.fit(X_train, y_train, epochs=100, verbose=0)
     # 새로운 데이터에 대한 예측
@@ -100,7 +100,7 @@ def predict_sell_price(ticker):
         tf.keras.layers.Dense(1)
     ])
     # 모델 컴파일
-    model.compile(optimizer='adam', loss='mse')
+    model.compile(optimizer='adam', loss='mse', run_eagerly=True)
     # 학습
     model.fit(X_train, y_train, epochs=100, verbose=0)
     # 새로운 데이터에 대한 예측

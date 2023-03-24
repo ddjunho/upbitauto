@@ -124,6 +124,7 @@ def run_auto_trade():
 # 스케줄러 설정
 schedule.every(1).seconds.do(run_auto_trade)
 print("autotrade start")
+print(target_price)
 
 # 스케줄러 실행
 while True:

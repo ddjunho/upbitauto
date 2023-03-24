@@ -30,7 +30,6 @@ def get_balance(ticker):
             else:
                 return 0
     return 0
-krw = get_balance("KRW")
 def get_current_price(ticker):
     # 현재가 조회
     try:
@@ -89,6 +88,7 @@ def predict_target_price(ticker, target_type):
         
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
+krw = get_balance("KRW")
 target_price = predict_target_price(COIN, 'low')
 predicted_sell_price = predict_target_price(COIN, 'high')
 current_price = get_current_price(COIN)

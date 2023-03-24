@@ -41,7 +41,7 @@ def get_target_price(ticker): #매수최저가예측
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(128, input_shape=(96, 5)),
+        tf.keras.layers.LSTM(128, input_shape=(None, 96, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(1)
     ])
@@ -95,7 +95,7 @@ def predict_sell_price(ticker):
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(128, input_shape=(96, 5)),
+        tf.keras.layers.LSTM(128, input_shape=(None, 96, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(1)
     ])

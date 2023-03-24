@@ -87,6 +87,9 @@ def predict_target_price(ticker, target_type):
         
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
+target_price = None
+predicted_sell_price = None
+current_price = None
 target_price = predict_target_price(COIN, 'low')
 predicted_sell_price = predict_target_price(COIN, 'high')
 current_price = get_current_price(COIN)
@@ -98,7 +101,7 @@ def run_auto_trade():
         try:
             now = datetime.datetime.now()
             
-            if now.hour == 9 and now.minute == 0:
+            if now.hour == 9 and now.minute == 0 or target_price == None:
                 krw = get_balance("KRW")
                 buy_amount = krw * 0.9995 * buy_unit
                 target_price = predict_target_price(COIN, 'low')

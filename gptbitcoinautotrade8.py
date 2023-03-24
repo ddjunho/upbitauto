@@ -28,6 +28,8 @@ def get_target_price(ticker):
     num_timesteps = 365
     num_features = 5
     num_samples = len(X) - num_timesteps - 1
+    if num_samples <= 0:
+        num_samples = 0
     # Reshape input data to 2-dimensional array
     X = X.reshape(-1, num_features)
     X_scaler = MinMaxScaler()
@@ -92,6 +94,8 @@ def predict_sell_price(ticker):
     num_timesteps = 365
     num_features = 5
     num_samples = len(X) - num_timesteps - 1
+    if num_samples <= 0:
+        num_samples = 0
     # Reshape input data to 2-dimensional array
     X = X.reshape(-1, num_features)
     X_scaler = MinMaxScaler()

@@ -29,7 +29,7 @@ def get_target_price(ticker):
     num_features = 5
     num_samples = len(X) - num_timesteps - 1
     # Reshape input data to 2-dimensional array
-    X = X.reshape(-1, num_timesteps * num_features)
+    X = X.reshape(-1, num_features)
     X_scaler = MinMaxScaler()
     X = X_scaler.fit_transform(X)
     # Reshape back to original shape

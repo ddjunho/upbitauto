@@ -130,7 +130,6 @@ def run_auto_trade():
             if now.hour == 9 and now.minute == 0:
                 krw = get_balance("KRW")
                 buy_amount = krw * 0.9995 * buy_unit
-            if now.minute % 30 == 0:
                 target_price = get_target_price(COIN)
                 predicted_sell_price = predict_sell_price(COIN)
                 current_price = get_current_price(COIN)

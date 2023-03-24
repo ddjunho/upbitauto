@@ -20,49 +20,6 @@ def vola_break(ticker):
     return vola_break_price
 vola_break_price = vola_break(COIN)
 
-def get_target_price(ticker):
-    # 데이터 불러오기
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=366)
-    # 입력 데이터 전처리
-    X = df[['open', 'high', 'low', 'close', 'volume']].values
-    X_scaler = StandardScaler()
-    X = X_scaler.fit_transform(X)
-    # 출력 데이터 전처리
-    y = df['low'].values
-    y_scaler = StandardScaler()
-    y = y_scaler.fit_transform(y.reshape((-1, 1)))
-    # 학습 데이터 생성
-    X_train = []
-    y_train = []
-    for i in range(365, len(X)):
-        X_train.append(X[i - 365:i, :])
-        y_train.append(y[i, 0])
-    X_train = np.array(X_train)
-    y_train = np.array(y_train)
-    # Tensorflow 모델 구성
-    model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(128, input_shape=(365, 5)),
-        tf.keras.layers.Dense(64, activation='relu'),
-        tf.keras.layers.Dense(64, activation='relu'),
-        tf.keras.layers.Dense(32, activation='relu'),
-        tf.keras.layers.Dense(1)
-    ])
-    # 모델 컴파일
-    model.compile(optimizer='adam', loss='mse', run_eagerly=True)
-    # 학습
-    model.fit(X_train, y_train, epochs=100, verbose=1)
-    # 새로운 데이터에 대한 예측
-    last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-365:].values
-    last_data_mean = last_data.mean(axis=0)
-    last_data_std = last_data.std(axis=0)
-    last_data = (last_data - last_data_mean) / last_data_std
-    # 예측할 데이터의 shape를 (1, 365, 5)로 변경
-    last_data = np.expand_dims(last_data, axis=0)
-    predicted_price = model.predict(last_data)
-    predicted_price = y_scaler.inverse_transform(predicted_price)
-    return predicted_price + vola_break_price
-
-
 def get_balance(ticker):
     # 잔고 조회
     balances = upbit.get_balances()
@@ -81,7 +38,7 @@ def get_current_price(ticker):
     except:
         return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["bid_price"]
     
-def predict_sell_price(ticker):
+def predict_target_price(ticker, target_type):
     # 데이터 불러오기
     df = pyupbit.get_ohlcv(ticker, interval="day", count=366)
     # 입력 데이터 전처리
@@ -89,7 +46,7 @@ def predict_sell_price(ticker):
     X_scaler = StandardScaler()
     X = X_scaler.fit_transform(X)
     # 출력 데이터 전처리
-    y = df['high'].values
+    y = df[target_type].values
     y_scaler = StandardScaler()
     y = y_scaler.fit_transform(y.reshape((-1, 1)))
     # 학습 데이터 생성
@@ -121,12 +78,17 @@ def predict_sell_price(ticker):
     last_data = np.expand_dims(last_data, axis=0)
     predicted_price = model.predict(last_data)
     predicted_price = y_scaler.inverse_transform(predicted_price)
-    return predicted_price - vola_break_price
-
+    if target_type == 'low':
+        return predicted_price + vola_break_price
+    elif target_type == 'high':
+        return predicted_price - vola_break_price
+    else:
+        raise ValueError('Invalid target type. Choose "low" or "high".')
+        
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
-target_price = get_target_price(COIN)
-predicted_sell_price = predict_sell_price(COIN)
+target_price = predict_target_price(COIN, 'low')
+predicted_sell_price = predict_target_price(COIN, 'high')
 current_price = get_current_price(COIN)
 # 자동매매 시작 함수
 krw = get_balance("KRW")
@@ -139,8 +101,8 @@ def run_auto_trade():
             if now.hour == 9 and now.minute == 0:
                 krw = get_balance("KRW")
                 buy_amount = krw * 0.9995 * buy_unit
-                target_price = get_target_price(COIN)
-                predicted_sell_price = predict_sell_price(COIN)
+                target_price = predict_target_price(COIN, 'low')
+                predicted_sell_price = predict_target_price(COIN, 'high')
                 current_price = get_current_price(COIN)
             if target_price - vola_break_price < current_price and target_price > current_price and target_price < predicted_sell_price:
                 if get_balance("KRW") < krw * buy_unit:

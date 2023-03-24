@@ -27,7 +27,7 @@ def get_target_price(ticker):
     X = df[['open', 'high', 'low', 'close', 'volume']].values  # 입력 데이터는 open, high, low, close, volume 5가지 종류
     num_timesteps = 365
     num_features = 5
-    num_samples = len(X) - num_timesteps
+    num_samples = len(X) - num_timesteps - 1
     # Reshape input data to 2-dimensional array
     X = X.reshape(-1, num_timesteps * num_features)
     X_scaler = MinMaxScaler()
@@ -91,7 +91,7 @@ def predict_sell_price(ticker):
     X = df[['open', 'high', 'low', 'close', 'volume']].values  # 입력 데이터는 open, high, low, close, volume 5가지 종류
     num_timesteps = 365
     num_features = 5
-    num_samples = len(X) - num_timesteps
+    num_samples = len(X) - num_timesteps - 1
     # Reshape input data to 2-dimensional array
     X = X.reshape(-1, num_timesteps * num_features)
     X_scaler = MinMaxScaler()

@@ -48,7 +48,7 @@ def get_target_price(ticker): #매수최저가예측
     # 모델 컴파일
     model.compile(optimizer='adam', loss='mse', run_eagerly=True)
     # 학습
-    model.fit(X_train, y_train, epochs=100, verbose=0)
+    model.fit(X_train, y_train, epochs=100, verbose=1)
     # 새로운 데이터에 대한 예측
     last_data = df[['open', 'high', 'low', 'close', 'volume']].iloc[-96:].values  # 가장 최근 192개 데이터
     last_data = X_scaler.transform(last_data.reshape((1, -1, 5)))  # 입력 데이터 전처리

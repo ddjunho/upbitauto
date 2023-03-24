@@ -22,7 +22,7 @@ vola_break_price = vola_break(COIN)
     
 def get_target_price(ticker):
     # 데이터 불러오기
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=365)
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=366)
     # 입력 데이터 전처리
     X = df[['open', 'high', 'low', 'close', 'volume']].values  # 입력 데이터는 open, high, low, close, volume 5가지 종류
     num_timesteps = 365
@@ -86,7 +86,7 @@ def get_current_price(ticker):
     
 def predict_sell_price(ticker):
     # 데이터 불러오기
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=365)
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=366)
     # 입력 데이터 전처리
     X = df[['open', 'high', 'low', 'close', 'volume']].values  # 입력 데이터는 open, high, low, close, volume 5가지 종류
     num_timesteps = 365

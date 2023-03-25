@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import schedule
 import tensorflow as tf
+import requests.exceptions
+import simplejson.errors
 from sklearn.preprocessing import StandardScaler
 from upbit_keys import access, secret
 tf.config.run_functions_eagerly(True)
@@ -24,14 +26,14 @@ vola_break_price = vola_break(COIN)
 def get_balance(ticker):
     # 잔고 조회
     try:
-        balances = upbit.get_balances(ticker)
+        balances = upbit.get_balances()
         for b in balances:
             if b['currency'] == ticker:
                 if b['balance'] is not None:
                     return float(b['balance'])
                 else:
                     return 0
-    except Exception as e:
+    except (requests.exceptions.RequestException, simplejson.errors.JSONDecodeError) as e:
         print(f"에러 발생: {e}")
     return 0
 def get_current_price(ticker):

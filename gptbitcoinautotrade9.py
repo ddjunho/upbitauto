@@ -27,7 +27,7 @@ def get_balance(ticker):
     # 원화 잔고 조회
     try:
         balances = upbit.get_balances(ticker)
-        if balance is None:
+        if balances is None:
             return 0
         else:
             return float(balance)

@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from upbit_keys import access, secret
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.1   # 분할 매수 금액 단위 설정
-k = 0.35
+k = 0.3
 COIN = "KRW-BTC" #코인명
 day_s = 0  #15*96은 1일
 

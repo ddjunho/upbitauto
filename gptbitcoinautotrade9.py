@@ -132,7 +132,7 @@ def run_auto_trade():
                 upbit.buy_market_order(COIN, buy_amount)
             else:
                 if current_price >= predicted_sell_price:
-                    btc = get_balance("BTC")
+                    btc = get_balance(COIN)
                     if btc > 0.00008:
                         sell_amount = btc * 1
                         upbit.sell_market_order(COIN, sell_amount)

@@ -23,13 +23,16 @@ vola_break_price = vola_break(COIN)
 
 def get_balance(ticker):
     # 잔고 조회
-    balances = upbit.get_balances()
-    for b in balances:
+    try:
+        balances = upbit.get_balances()
+        for b in balances:
         if b['currency'] == ticker:
             if b['balance'] is not None:
                 return float(b['balance'])
             else:
                 return 0
+    except Exception as e:
+        print(f"에러 발생: {e}")
     return 0
 def get_current_price(ticker):
     # 현재가 조회

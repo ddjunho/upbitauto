@@ -26,11 +26,11 @@ def get_balance(ticker):
     try:
         balances = upbit.get_balances()
         for b in balances:
-        if b['currency'] == ticker:
-            if b['balance'] is not None:
-                return float(b['balance'])
-            else:
-                return 0
+            if b['currency'] == ticker:
+                if b['balance'] is not None:
+                    return float(b['balance'])
+                else:
+                    return 0
     except Exception as e:
         print(f"에러 발생: {e}")
     return 0

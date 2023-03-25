@@ -77,7 +77,7 @@ def predict_target_price(ticker, target_type):
     last_data = np.expand_dims(last_data, axis=0)
     predicted_price = model.predict(last_data)
     predicted_price = y_scaler.inverse_transform(predicted_price)
-    predicted_price = ['{:.5f}'.format(p) for p in predicted_price.flatten()]
+    predicted_price = ['{:.3f}'.format(p) for p in predicted_price.flatten()]
     predicted_price = [[float(p)] for p in predicted_price]
     if target_type == 'low':
         return predicted_price + vola_break_price

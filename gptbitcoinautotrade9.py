@@ -8,12 +8,13 @@ import schedule
 import tensorflow as tf
 from sklearn.preprocessing import StandardScaler
 from upbit_keys import access, secret
-
 with open('example.json', 'r') as f:
-    try:
-        json.load(f)
-    except ValueError as e:
-        print('Invalid JSON:', e)
+    params = json.load(f)
+
+ticker = params['ticker']
+target_type = params['target_type']
+
+predicted_price = predict_target_price(ticker, target_type)
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.1   # 분할 매수 금액 단위 설정
 k = 0.3
@@ -44,7 +45,13 @@ def get_current_price(ticker):
     except:
         return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["bid_price"]
     
-def predict_target_price(ticker, target_type):
+def predict_target_price(target_type):
+    with open(f"{target_type}.json") as f:
+        input_data = json.load(f)
+
+    ticker = input_data['arguments']['ticker']
+    target_type = input_data['arguments']['target_type']
+
     # 데이터 불러오기
     df = pyupbit.get_ohlcv(ticker, interval="day", count=366)
     # 입력 데이터 전처리
@@ -92,12 +99,11 @@ def predict_target_price(ticker, target_type):
         return predicted_price - vola_break_price
     else:
         raise ValueError('Invalid target type. Choose "low" or "high".')
-        
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 krw = get_balance("KRW")
-target_price = predict_target_price(COIN, 'low')
-predicted_sell_price = predict_target_price(COIN, 'high')
+target_price = predict_target_price(low)
+predicted_sell_price = predict_target_price(high)
 current_price = get_current_price(COIN)
 # 자동매매 시작 함수
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산

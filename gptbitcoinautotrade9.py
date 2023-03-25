@@ -105,6 +105,7 @@ krw = get_balance("KRW")
 target_price = predict_target_price("low")
 predicted_sell_price = predict_target_price("high")
 current_price = get_current_price(COIN)
+btc = get_balance(COIN)
 # 자동매매 시작 함수
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 def run_auto_trade():
@@ -113,6 +114,7 @@ def run_auto_trade():
     global current_price
     global buy_amount
     global krw
+    global btc
     while True:
         try:
             now = datetime.datetime.now()
@@ -128,9 +130,9 @@ def run_auto_trade():
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)
             else:
-                if current_price >= predicted_sell_price:
+                if current_price >= predicted_sell_price and btc is not None:
                     btc = get_balance(COIN)
-                    sell_amount = btc * 1
+                    sell_amount = btc
                     upbit.sell_market_order(COIN, sell_amount)
         except Exception as e:
             print(e)

@@ -139,11 +139,11 @@ def run_auto_trade():
 # 스케줄러 설정
 schedule.every(1).seconds.do(run_auto_trade)
 print("autotrade start")
-print("매수가 조회 :"target_price)
-print("매도가 조회 :"predicted_sell_price)
-print("현재가 조회 :"current_price)
-print("원화잔고 :"krw)
-print("비트코인잔고 :"get_balance(COIN))
+print("매수가 조회 :",target_price)
+print("매도가 조회 :",predicted_sell_price)
+print("현재가 조회 :",current_price)
+print("원화잔고 :",krw)
+print("비트코인잔고 :",get_balance(COIN))
 # 스케줄러 실행
 while True:
     try:

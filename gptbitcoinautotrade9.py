@@ -1,4 +1,5 @@
 import time
+import json
 import pyupbit
 import datetime
 import pandas as pd
@@ -7,6 +8,12 @@ import schedule
 import tensorflow as tf
 from sklearn.preprocessing import StandardScaler
 from upbit_keys import access, secret
+
+with open('example.json', 'r') as f:
+    try:
+        json.load(f)
+    except ValueError as e:
+        print('Invalid JSON:', e)
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.1   # 분할 매수 금액 단위 설정
 k = 0.3

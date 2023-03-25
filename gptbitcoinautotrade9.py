@@ -12,7 +12,7 @@ from sklearn.preprocessing import StandardScaler
 from upbit_keys import access, secret
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.1   # 분할 매수 금액 단위 설정
-k = 0.3
+k = 0
 COIN = "KRW-BTC" #코인명
 day_s = 0  #15*96은 1일
 
@@ -117,8 +117,7 @@ def run_auto_trade():
     global btc
     while True:
         try:
-            now = datetime.datetime.now()
-            
+            now = datetime.now()
             if now.hour == 9 and now.minute == 0 :
                 krw = get_balance("KRW")
                 buy_amount = krw * 0.9995 * buy_unit

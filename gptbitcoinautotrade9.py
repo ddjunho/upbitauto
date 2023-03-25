@@ -24,18 +24,27 @@ def vola_break(ticker):
 vola_break_price = vola_break(COIN)
 
 def get_balance(ticker):
-    # 잔고 조회
-    try:
-        balances = upbit.get_balances()
-        for b in balances:
-            if b['currency'] == ticker:
-                if b['balance'] is not None:
-                    return float(b['balance'])
-                else:
-                    return 0
-    except (requests.exceptions.RequestException, simplejson.errors.JSONDecodeError) as e:
-        print(f"에러 발생: {e}")
-    return 0
+    # 원화 잔고 조회
+    if ticker == "KRW":
+        try:
+            balance = upbit.get_balance(ticker)
+            return balance
+        except (requests.exceptions.RequestException, simplejson.errors.JSONDecodeError) as e:
+            print(f"에러 발생: {e}")
+            return 0
+    # 암호화폐 잔고 조회
+    else:
+        try:
+            balances = upbit.get_balances()
+            for b in balances:
+                if b['currency'] == ticker:
+                    if b['balance'] is not None:
+                        return float(b['balance'])
+                    else:
+                        return 0
+        except (requests.exceptions.RequestException, simplejson.errors.JSONDecodeError) as e:
+            print(f"에러 발생: {e}")
+            return 0
 def get_current_price(ticker):
     # 현재가 조회
     try:

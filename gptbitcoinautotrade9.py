@@ -8,13 +8,6 @@ import schedule
 import tensorflow as tf
 from sklearn.preprocessing import StandardScaler
 from upbit_keys import access, secret
-with open('example.json', 'r') as f:
-    params = json.load(f)
-
-ticker = params['ticker']
-target_type = params['target_type']
-
-predicted_price = predict_target_price(ticker, target_type)
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.1   # 분할 매수 금액 단위 설정
 k = 0.3
@@ -102,8 +95,8 @@ def predict_target_price(target_type):
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 krw = get_balance("KRW")
-target_price = predict_target_price(low)
-predicted_sell_price = predict_target_price(high)
+target_price = predict_target_price("low")
+predicted_sell_price = predict_target_price("high")
 current_price = get_current_price(COIN)
 # 자동매매 시작 함수
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산

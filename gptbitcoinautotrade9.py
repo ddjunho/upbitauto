@@ -139,7 +139,7 @@ schedule.every(1).seconds.do(run_auto_trade)
 print("autotrade start")
 print(target_price)
 print(predicted_sell_price)
-print(current_price
+print(current_price)
 print(krw)
 print(get_balance(COIN))
 # 스케줄러 실행

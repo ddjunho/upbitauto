@@ -129,9 +129,8 @@ def run_auto_trade():
             else:
                 if current_price >= predicted_sell_price:
                     btc = get_balance(COIN)
-                    if btc > 0.00008:
-                        sell_amount = btc * 1
-                        upbit.sell_market_order(COIN, sell_amount)
+                    sell_amount = btc * 1
+                    upbit.sell_market_order(COIN, sell_amount)
         except Exception as e:
             print(e)
             time.sleep(1)
@@ -139,7 +138,10 @@ def run_auto_trade():
 schedule.every(1).seconds.do(run_auto_trade)
 print("autotrade start")
 print(target_price)
-
+print(predicted_sell_price)
+print(current_price
+print(krw)
+print(get_balance(COIN))
 # 스케줄러 실행
 while True:
     try:

@@ -26,7 +26,7 @@ vola_break_price = vola_break(COIN)
 def get_balance(ticker):
     # 원화 잔고 조회
     try:
-        balances = upbit.get_balances(ticker)
+        balances = upbit.get_balances()
         for b in balances:
             if b['currency'] == ticker:
                 if b['balance'] is not None:

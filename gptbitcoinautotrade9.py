@@ -1,13 +1,13 @@
 import time
 import json
 import pyupbit
-import datetime
 import pandas as pd
 import numpy as np
 import schedule
 import tensorflow as tf
 import requests.exceptions
 import simplejson.errors
+from datetime import datetime
 from sklearn.preprocessing import StandardScaler
 from upbit_keys import access, secret
 tf.config.run_functions_eagerly(True)

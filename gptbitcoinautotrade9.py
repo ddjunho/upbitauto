@@ -28,6 +28,8 @@ def get_balance(ticker):
     if ticker == "KRW":
         try:
             balance = upbit.get_balance(ticker)
+            if balance is not None and balance > 0.5:
+                print("KRW balance is greater than 0.5")
             return balance
         except (requests.exceptions.RequestException, simplejson.errors.JSONDecodeError) as e:
             print(f"에러 발생: {e}")

@@ -135,6 +135,7 @@ def run_auto_trade():
                     btc = get_balance(COIN)
                     sell_amount = btc
                     upbit.sell_market_order(COIN, sell_amount)
+            print(now)
         except Exception as e:
             print(e)
             time.sleep(1)

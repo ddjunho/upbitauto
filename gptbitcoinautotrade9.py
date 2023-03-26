@@ -130,12 +130,14 @@ def run_auto_trade():
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)
+                print(now, "매수")
             else:
                 if btc != 0 and btc is not None and current_price >= predicted_sell_price:
                     btc = get_balance(COIN)
                     sell_amount = btc
                     upbit.sell_market_order(COIN, sell_amount)
-            print(now)
+                    print(now, "매도")
+            time.sleep(1)
         except Exception as e:
             print(e)
             time.sleep(1)

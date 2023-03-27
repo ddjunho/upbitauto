@@ -12,7 +12,7 @@ from sklearn.preprocessing import StandardScaler
 from upbit_keys import access, secret
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.1   # 분할 매수 금액 단위 설정
-k = 0.1
+k = 0
 COIN = "KRW-BTC" #코인명
 day_s = 0  #15*96은 1일
 
@@ -21,7 +21,7 @@ def vola_break(ticker):
     df = pyupbit.get_ohlcv(ticker, interval="day", count=2)
     vola_break_price = (df.iloc[0]['high'] - df.iloc[0]['low']) * k
     return vola_break_price
-vola_break_price = vola_break(COIN)
+#vola_break_price = vola_break(COIN)
 
 def get_balance(ticker):
     # 원화 잔고 조회
@@ -48,10 +48,8 @@ def get_current_price(ticker):
 def predict_target_price(target_type):
     with open(f"{target_type}.json") as f:
         input_data = json.load(f)
-
     ticker = input_data['arguments']['ticker']
     target_type = input_data['arguments']['target_type']
-
     # 데이터 불러오기
     df1 = pyupbit.get_ohlcv(ticker, interval="day", count=183)
     df2 = pyupbit.get_ohlcv(ticker, interval="day", count=183, to=df1.index[0])
@@ -100,7 +98,7 @@ def predict_target_price(target_type):
     elif target_type == 'high':
         return predicted_price - vola_break_price
     else:
-        raise ValueError('Invalid target type. Choose "low" or "high".')
+        raise ValueError('그거 아님. Choose "low" or "high".')
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 krw = get_balance("KRW")
@@ -126,7 +124,7 @@ while True:
             buy_amount = krw * 0.9995 * buy_unit
             target_price = predict_target_price(COIN, 'low')
             predicted_sell_price = predict_target_price(COIN, 'high')
-        if krw is not None and target_price - vola_break_price <= current_price and target_price >= current_price and target_price < predicted_sell_price and target_price > 100:
+        if krw is not None and '''target_price - vola_break_price <= current_price and target_price >= current_price and''' target_price < predicted_sell_price and krw > 100:
             if get_balance("KRW") < krw * buy_unit:
                buy_amount = krw * 0.9995
             upbit.buy_market_order(COIN, buy_amount)

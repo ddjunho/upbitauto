@@ -126,7 +126,7 @@ def run_auto_trade():
                 buy_amount = krw * 0.9995 * buy_unit
                 target_price = predict_target_price(COIN, 'low')
                 predicted_sell_price = predict_target_price(COIN, 'high')
-            if krw is not None and target_price - vola_break_price <= current_price and target_price >= current_price and target_price < predicted_sell_price:
+            if krw is not None and target_price - vola_break_price <= current_price and target_price >= current_price and target_price < predicted_sell_price and target_price > 100:
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)

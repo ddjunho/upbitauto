@@ -25,6 +25,7 @@ def sharpe_ratio(ticker):
     std_return = df["daily_return"].std()
     # 샤프 지수 계산
     sharpe = (total_return - 0.02) / std_return
+    sharpe = round(sharpe, 3)
     return sharpe
 
 def get_balance(ticker):

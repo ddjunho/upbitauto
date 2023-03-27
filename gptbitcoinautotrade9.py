@@ -120,8 +120,9 @@ while True:
         now = datetime.now()
         current_price = get_current_price(COIN)
         if now.hour == 9 and now.minute == 0 :
-            krw = get_balance("KRW")
-            buy_amount = krw * 0.9995 * buy_unit
+            if krw <= get_balance("KRW"):
+                krw = get_balance("KRW")
+                buy_amount = krw * 0.9995 * buy_unit
             target_price = predict_target_price(COIN, 'low')
             predicted_sell_price = predict_target_price(COIN, 'high')
         if krw is not None and target_price - vola_break_price <= current_price and target_price >= current_price and target_price < predicted_sell_price and krw > 10000:

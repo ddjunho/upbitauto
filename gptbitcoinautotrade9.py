@@ -17,14 +17,14 @@ COIN = "KRW-BTC" #코인명
 def sharpe_ratio(ticker):
     df = pyupbit.get_ohlcv(ticker, interval="day", count=60)
     df["daily_return"] = df["close"].pct_change()
-    buy_price = df["close"].iloc[-31] * 1.015  # 30일 전 대비 1.5% 상승한 가격
+    buy_price = df["close"].iloc[-31] * 1.02  # 30일 전 대비 1.5% 상승한 가격
     sell_price = df["close"].iloc[-1]
     # 매수 매도 후 총 수익률 계산
     total_return = sell_price / buy_price - 1
     # 일별 수익률의 표준편차 계산
     std_return = df["daily_return"].std()
     # 샤프 지수 계산
-    sharpe = (total_return - 0.0105) / std_return
+    sharpe = (total_return - 0.02) / std_return
     return sharpe
 
 def get_balance(ticker):
@@ -127,11 +127,12 @@ while True:
             target_price = predict_target_price(COIN, 'low')
             predicted_sell_price = predict_target_price(COIN, 'high')
             sharpe = sharpe_ratio(COIN)
-        if krw is not None and target_price >= current_price and target_price < predicted_sell_price and krw > 10000 and sharpe > 0:
-            if get_balance("KRW") < krw * buy_unit:
-               buy_amount = krw * 0.9995
-            upbit.buy_market_order(COIN, buy_amount)
-            print(now, "매수")
+        if krw is not None and target_price >= current_price and target_price < predicted_sell_price and sharpe > 0:
+            if krw > 10000:
+                if get_balance("KRW") < krw * buy_unit:
+                    buy_amount = krw * 0.9995
+                upbit.buy_market_order(COIN, buy_amount)
+                print(now, "매수")
         else:
             if btc != 0 and btc is not None and current_price >= predicted_sell_price:
                 btc = get_balance(COIN)

@@ -12,16 +12,20 @@ from sklearn.preprocessing import StandardScaler
 from upbit_keys import access, secret
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.1   # 분할 매수 금액 단위 설정
-k = 0
-COIN = "KRW-BTC" #코인명
-day_s = 0  #15*96은 1일
 
-def vola_break(ticker):
-    # 변동성 돌파 전략
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=2)
-    vola_break_price = (df.iloc[0]['high'] - df.iloc[0]['low']) * k
-    return vola_break_price
-vola_break_price = vola_break(COIN)
+COIN = "KRW-BTC" #코인명
+def sharpe_ratio(ticker):
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=30)
+    df["daily_return"] = df["close"].pct_change()
+    buy_price = df["close"].iloc[-2] * 1.0005  # 전일 대비 1.05% 상승한 가격
+    sell_price = df["close"].iloc[-1]
+    # 매수 매도 후 총 수익률 계산
+    total_return = sell_price / buy_price - 1
+    # 일별 수익률의 표준편차 계산
+    std_return = df["daily_return"].std()
+    # 샤프 지수 계산
+    sharpe = (total_return - 0.0105) / std_return
+    return sharpe
 
 def get_balance(ticker):
     # 원화 잔고 조회
@@ -93,12 +97,8 @@ def predict_target_price(target_type):
     predicted_price = y_scaler.inverse_transform(predicted_price)
     predicted_price = ['{:.5f}'.format(p) for p in predicted_price.flatten()]
     predicted_price = [[float(p)] for p in predicted_price]
-    if target_type == 'low':
-        return predicted_price + vola_break_price
-    elif target_type == 'high':
-        return predicted_price - vola_break_price
-    else:
-        raise ValueError('그거 아님. Choose "low" or "high".')
+    return predicted_price
+
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 krw = get_balance("KRW")
@@ -106,6 +106,7 @@ target_price = predict_target_price("low")
 predicted_sell_price = predict_target_price("high")
 current_price = get_current_price(COIN)
 btc = get_balance(COIN)
+sharpe = sharpe_ratio(COIN)
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 print("매수가 조회 :",target_price)
 print("매도가 조회 :",predicted_sell_price)
@@ -125,7 +126,8 @@ while True:
                 buy_amount = krw * 0.9995 * buy_unit
             target_price = predict_target_price(COIN, 'low')
             predicted_sell_price = predict_target_price(COIN, 'high')
-        if krw is not None and target_price - vola_break_price <= current_price and target_price >= current_price and target_price < predicted_sell_price and krw > 10000:
+            sharpe = sharpe_ratio(COIN)
+        if krw is not None and target_price >= current_price and target_price < predicted_sell_price and krw > 10000 and sharpe > 0:
             if get_balance("KRW") < krw * buy_unit:
                buy_amount = krw * 0.9995
             upbit.buy_market_order(COIN, buy_amount)

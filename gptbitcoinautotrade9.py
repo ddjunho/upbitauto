@@ -15,9 +15,9 @@ buy_unit = 0.1   # 분할 매수 금액 단위 설정
 
 COIN = "KRW-BTC" #코인명
 def sharpe_ratio(ticker):
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=30)
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=60)
     df["daily_return"] = df["close"].pct_change()
-    buy_price = df["close"].iloc[-2] * 1.0005  # 전일 대비 1.05% 상승한 가격
+    buy_price = df["close"].iloc[-31] * 1.015  # 30일 전 대비 1.5% 상승한 가격
     sell_price = df["close"].iloc[-1]
     # 매수 매도 후 총 수익률 계산
     total_return = sell_price / buy_price - 1

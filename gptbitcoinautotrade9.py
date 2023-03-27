@@ -113,7 +113,7 @@ print("매도가 조회 :",predicted_sell_price)
 print("현재가 조회 :",current_price)
 print("원화잔고 :",krw)
 print("비트코인잔고 :",get_balance(COIN))
-print("변동성 :",vola_break_price)
+print("샤프지수 :",sharpe_ratio(COIN))
 print("autotrade start")
 # 스케줄러 실행
 while True:

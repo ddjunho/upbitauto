@@ -96,9 +96,8 @@ def predict_target_price(target_type):
     last_data = np.expand_dims(last_data, axis=0)
     predicted_price = model.predict(last_data)
     predicted_price = y_scaler.inverse_transform(predicted_price)
-    predicted_price = ['{:.5f}'.format(p) for p in predicted_price.flatten()]
-    predicted_price = [float(p) for p in predicted_price]
-    return predicted_price*1
+    predicted_price = predicted_price.flatten()[0]  # 이중 리스트를 일차원으로 변경하고 첫 번째 원소를 선택
+    return float(predicted_price)
 
 # 로그인
 upbit = pyupbit.Upbit(access, secret)

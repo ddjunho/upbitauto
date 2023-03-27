@@ -97,7 +97,7 @@ def predict_target_price(target_type):
     predicted_price = model.predict(last_data)
     predicted_price = y_scaler.inverse_transform(predicted_price)
     predicted_price = ['{:.5f}'.format(p) for p in predicted_price.flatten()]
-    predicted_price = [[float(p)] for p in predicted_price]
+    predicted_price = [float(p) for p in predicted_price]
     return predicted_price*1
 
 # 로그인

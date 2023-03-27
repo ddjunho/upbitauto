@@ -120,12 +120,12 @@ def run_auto_trade():
     while True:
         try:
             now = datetime.now()
+            current_price = get_current_price(COIN)
             if now.hour == 9 and now.minute == 0 :
                 krw = get_balance("KRW")
                 buy_amount = krw * 0.9995 * buy_unit
                 target_price = predict_target_price(COIN, 'low')
                 predicted_sell_price = predict_target_price(COIN, 'high')
-                current_price = get_current_price(COIN)
             if krw is not None and target_price - vola_break_price <= current_price and target_price >= current_price and target_price < predicted_sell_price:
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
@@ -143,13 +143,13 @@ def run_auto_trade():
             time.sleep(1)
 # 스케줄러 설정
 schedule.every(1).seconds.do(run_auto_trade)
-print("autotrade start")
 print("매수가 조회 :",target_price)
 print("매도가 조회 :",predicted_sell_price)
 print("현재가 조회 :",current_price)
 print("원화잔고 :",krw)
 print("비트코인잔고 :",get_balance(COIN))
 print("변동성 :",vola_break_price)
+print("autotrade start")
 # 스케줄러 실행
 while True:
     try:

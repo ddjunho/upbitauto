@@ -115,7 +115,7 @@ target_price = predict_target_price("low")
 predicted_sell_price = predict_target_price("high")
 current_price = get_current_price(COIN)
 btc = get_balance(COIN)
-target_sell=(target_price+predicted_sell_price)/2*buy_unit
+target_sell=(predicted_sell_price-target_price)/2*buy_unit
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 print("매수가 조회 :",target_price)
 print("매도가 조회 :",predicted_sell_price)

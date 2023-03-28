@@ -9,6 +9,7 @@ import requests.exceptions
 import simplejson.errors
 from datetime import datetime
 from sklearn.preprocessing import StandardScaler
+from fbprophet import Prophet
 from upbit_keys import access, secret
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.1   # 분할 매수 금액 단위 설정
@@ -86,6 +87,27 @@ def predict_target_price(target_type):
     predicted_price = predicted_price.flatten()[0]  # 이중 리스트를 일차원으로 변경하고 첫 번째 원소를 선택
     return float(predicted_price)
 
+predicted_close_price = 0
+def predict_price(ticker):
+    """Prophet으로 당일 종가 가격 예측"""
+    global predicted_close_price
+    df = pyupbit.get_ohlcv(ticker, interval="minute60")
+    df = df.reset_index()
+    df['ds'] = df['index']
+    df['y'] = df['close']
+    data = df[['ds','y']]
+    model = Prophet()
+    model.fit(data)
+    future = model.make_future_dataframe(periods=24, freq='H')
+    forecast = model.predict(future)
+    closeDf = forecast[forecast['ds'] == forecast.iloc[-1]['ds'].replace(hour=9)]
+    if len(closeDf) == 0:
+        closeDf = forecast[forecast['ds'] == data.iloc[-1]['ds'].replace(hour=9)]
+    closeValue = closeDf['yhat'].values[0]
+    predicted_close_price = closeValue
+predict_price("KRW-BTC")
+schedule.every().hour.do(lambda: predict_price("KRW-BTC"))
+
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 krw = get_balance("KRW")
@@ -93,7 +115,6 @@ target_price = predict_target_price("low")
 predicted_sell_price = predict_target_price("high")
 current_price = get_current_price(COIN)
 btc = get_balance(COIN)
-close_price = predict_target_price("close")
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 print("매수가 조회 :",target_price)
 print("매도가 조회 :",predicted_sell_price)
@@ -113,9 +134,7 @@ while True:
                 buy_amount = krw * 0.9995 * buy_unit
             target_price = predict_target_price(COIN, 'low')
             predicted_sell_price = predict_target_price(COIN, 'high')
-            sharpe = sharpe_ratio(COIN)
-            past_prices = pyupbit.get_ohlcv(ticker, interval="day", count=3)["close"]
-        if krw is not None and current_price < target_price and target_price < predicted_sell_price and current_price >= close_price:
+        if krw is not None and current_price <= target_price and target_price < predicted_sell_price and current_price < predicted_close_price:
             if krw > 10000:
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995

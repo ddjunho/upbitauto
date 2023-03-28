@@ -12,7 +12,7 @@ from sklearn.preprocessing import StandardScaler
 from fbprophet import Prophet
 from upbit_keys import access, secret
 tf.config.run_functions_eagerly(True)
-buy_unit = 0.1   # 분할 매수 금액 단위 설정
+buy_unit = 0.25   # 분할 매수 금액 단위 설정
 
 COIN = "KRW-BTC" #코인명
 

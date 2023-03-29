@@ -144,9 +144,9 @@ while True:
                 upbit.buy_market_order(COIN, buy_amount)
                 print(now, "매수")
         else:
-            if btc != 0 and btc is not None and current_price >= predicted_sell_price-PriceEase:
+            if current_price >= predicted_sell_price-PriceEase:
                 btc = get_balance(COIN)
-                if get_balance("BTC") > 0.00008:
+                if btc != 0 and btc is not None
                     upbit.sell_market_order(COIN, btc)
                     print(now, "매도")
         time.sleep(1)

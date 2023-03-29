@@ -12,7 +12,7 @@ from sklearn.preprocessing import StandardScaler
 from fbprophet import Prophet
 from upbit_keys import access, secret
 tf.config.run_functions_eagerly(True)
-buy_unit = 0.1  # 분할 매수 금액 단위 설정
+buy_unit = 0.2  # 분할 매수 금액 단위 설정
 
 COIN = "KRW-BTC" #코인명
 
@@ -115,13 +115,14 @@ target_price = predict_target_price("low")
 predicted_sell_price = predict_target_price("high")
 current_price = get_current_price(COIN)
 btc = get_balance(COIN)
-target_sell=(predicted_sell_price-target_price)*0.2
+PriceEase=(predicted_sell_price-target_price)*0.2
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 print("매수가 조회 :",target_price)
 print("매도가 조회 :",predicted_sell_price)
 print("현재가 조회 :",current_price)
 print("원화잔고 :",krw)
-print("비트코인잔고 :",get_balance(COIN))
+print("비트코인잔고 :",btc)
+print("목표가 완화 :",PriceEase)
 print("autotrade start")
 # 스케줄러 실행
 while True:
@@ -134,19 +135,19 @@ while True:
                 buy_amount = krw * 0.9995 * buy_unit
             target_price = predict_target_price(COIN, 'low')
             predicted_sell_price = predict_target_price(COIN, 'high')
-            target_sell=(predicted_sell_price-target_price)*0.2
-        if krw is not None and current_price <= target_price+target_sell and target_price+target_sell < predicted_sell_price-target_sell and current_price < predicted_close_price:
+            PriceEase=(predicted_sell_price-target_price)*0.2
+        if krw is not None and current_price <= target_price+PriceEase and target_price+PriceEase < predicted_sell_price-PriceEase and current_price < predicted_close_price:
             if krw > 10000:
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)
                 print(now, "매수")
         else:
-            if btc != 0 and btc is not None and current_price >= predicted_sell_price-target_sell:
+            if btc != 0 and btc is not None and current_price >= predicted_sell_price-PriceEase:
                 btc = get_balance(COIN)
-                sell_amount = btc
-                upbit.sell_market_order(COIN, sell_amount)
-                print(now, "매도")
+                if get_balance("BTC") > 0.00008:
+                    upbit.sell_market_order(COIN, btc)
+                    print(now, "매도")
         time.sleep(1)
     except Exception as e:
         print(e)

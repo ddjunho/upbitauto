@@ -127,6 +127,7 @@ print("autotrade start")
 # 스케줄러 실행
 while True:
     try:
+        schedule.run_pending()
         now = datetime.now()
         current_price = get_current_price(COIN)
         if now.hour == 9 and now.minute == 0 :

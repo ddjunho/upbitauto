@@ -135,7 +135,7 @@ while True:
             target_price = predict_target_price(COIN, 'low')
             predicted_sell_price = predict_target_price(COIN, 'high')
             target_sell=(predicted_sell_price-target_price)*0.2
-        if krw is not None and current_price <= target_price and target_price < predicted_sell_price and current_price < predicted_close_price:
+        if krw is not None and current_price <= target_price+target_sell and target_price+target_sell < predicted_sell_price-target_sell and current_price < predicted_close_price:
             if krw > 10000:
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995

@@ -114,7 +114,7 @@ krw = get_balance("KRW")
 target_price = predict_target_price("low")
 predicted_sell_price = predict_target_price("high")
 current_price = get_current_price(COIN)
-btc = get_balance(COIN)
+btc = get_balance("BTC")
 PriceEase=(predicted_sell_price-target_price)*0.15
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 print("매수가 조회 :",target_price)
@@ -145,7 +145,7 @@ while True:
                 print(now, "매수")
         else:
             if current_price >= predicted_sell_price-PriceEase:
-                btc = get_balance(COIN)
+                btc = get_balance("BTC")
                 if btc != 0 and btc is not None:
                     upbit.sell_market_order(COIN, btc)
                     print(now, "매도")

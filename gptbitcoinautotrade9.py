@@ -89,7 +89,7 @@ def predict_target_price(target_type):
 
 predicted_close_price = 0
 def predict_price(ticker):
-    #Prophet으로 당일 종가 가격 예
+    #Prophet으로 당일 종가 가격 예측
     global predicted_close_price
     df = pyupbit.get_ohlcv(ticker, interval="minute60")
     df = df.reset_index()

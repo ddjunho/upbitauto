@@ -137,14 +137,14 @@ while True:
             target_price = predict_target_price(COIN, 'low')
             sell_price = predict_target_price(COIN, 'high')
             PriceEase=(sell_price-target_price)*0.15
-        if krw is not None and current_price <= target_price+PriceEase and target_price+PriceEase < sell_price-PriceEase and current_price < close_price:
+        if krw is not None and current_price <= target_price and target_price < sell_price-(PriceEase*4) and current_price < close_price:
             if krw > 10000:
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)
                 print(now, "매수")
         else:
-            if current_price >= sell_price-PriceEase:
+            if current_price >= sell_price-(PriceEase*4):
                 btc = get_balance("BTC")
                 if btc > 0.00008 and btc is not None:
                     upbit.sell_market_order(COIN, btc)

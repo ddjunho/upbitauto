@@ -160,7 +160,7 @@ print("현재가 조회 :",current_price)
 print("상승장 예측 :",bull_market)
 print("원화잔고 :",krw)
 print("비트코인잔고 :",btc)
-print("목표가 완화 :",PriceEase*5)
+print("목표가 완화 :",PriceEase*3)
 print("autotrade start")
 # 스케줄러 실행
 while True:
@@ -177,7 +177,7 @@ while True:
             PriceEase=round((sell_price-target_price)*0.1, 1)
             bull_market = is_bull_market(COIN)
         # 매수 조건
-        if krw is not None and current_price <= target_price and target_price < sell_price-(PriceEase*4) and current_price < close_price[0] and current_price < close_price[1]:
+        if krw is not None and current_price <= target_price + PriceEase*2 and target_price + PriceEase*2 < sell_price-(PriceEase*3) and current_price < close_price[0] and current_price < close_price[1]:
             if krw > 10000 and bull_market==True :
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
@@ -195,10 +195,10 @@ while True:
         # PriceEase 증가 조건
         if last_buy_time is not None:
             time_since_last_buy = datetime.now() - last_buy_time
-            if time_since_last_buy.total_seconds() >= 3600: # 1시간마다
+            if time_since_last_buy.total_seconds() >= 5400: # 1시간30분마다
                 multiplier += 1
-                if multiplier>4:
-                    multiplier=4
+                if multiplier>3:
+                    multiplier=3
                     last_buy_time = None
                 last_buy_time = datetime.now()
         time.sleep(1)

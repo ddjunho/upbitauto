@@ -143,18 +143,31 @@ while True:
             target_price = predict_target_price(COIN, 'low')
             sell_price = predict_target_price(COIN, 'high')
             PriceEase=(sell_price-target_price)*0.15
-        if krw is not None and current_price <= target_price and target_price < sell_price-(PriceEase*3) and current_price < close_price[0] and current_price < close_price[1]:
+        # 매수 조건
+        if krw is not None and current_price <= target_price and target_price < sell_price-(PriceEase*4) and current_price < close_price[0] and current_price < close_price[1]:
             if krw > 10000:
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)
+                last_buy_time = datetime.now()
+                multiplier = 1
                 print(now, "매수")
+        # 매도 조건
         else:
-            if current_price >= sell_price-(PriceEase*3):
+            if current_price >= sell_price-(PriceEase*multiplier):
                 btc = get_balance("BTC")
                 if btc > 0.00008 and btc is not None:
                     upbit.sell_market_order(COIN, btc)
                     print(now, "매도")
+        # PriceEase 증가 조건
+        if last_buy_time is not None:
+            time_since_last_buy = datetime.now() - last_buy_time
+            if time_since_last_buy.total_seconds() >= 3600: # 1시간마다
+                multiplier += 1
+                if multiplier>4:
+                    multiplier=4
+                    last_buy_time = None
+                last_buy_time = datetime.now()
         time.sleep(1)
     except Exception as e:
         print(e)

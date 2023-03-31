@@ -151,6 +151,8 @@ btc = get_balance("BTC")
 bull_market = is_bull_market(COIN)
 PriceEase=round((sell_price-target_price)*0.1, 1)
 multiplier = 1
+last_buy_time = None
+time_since_last_buy = None
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 print("매수가 조회 :",target_price)
 print("매도가 조회 :",sell_price)

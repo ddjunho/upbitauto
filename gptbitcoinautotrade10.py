@@ -41,7 +41,6 @@ def get_current_price(ticker):
         return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["bid_price"]
 
 def predict_target_price(target_type):
-    global DF
     with open(f"{target_type}.json") as f:
         input_data = json.load(f)
     ticker = input_data['arguments']['ticker']
@@ -91,6 +90,9 @@ def predict_target_price(target_type):
     return float(predicted_price)
 
 def is_bull_market(ticker):
+    df1 = pyupbit.get_ohlcv(ticker, interval="day", count=183)
+    df2 = pyupbit.get_ohlcv(ticker, interval="day", count=183, to=df1.index[0])
+    DF = pd.concat([df2, df1])
     # 기술적 지표 추가
     DF['ma5'] = DF['close'].rolling(window=5).mean()
     DF['ma10'] = DF['close'].rolling(window=10).mean()

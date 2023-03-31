@@ -89,9 +89,8 @@ def predict_target_price(target_type):
 
 close_price = 0
 def predict_price(ticker):
-    #Prophet으로 당일 종가 가격 예측
     global close_price
-    df = pyupbit.get_ohlcv(ticker, interval="minute60")
+    df = pyupbit.get_ohlcv(ticker, interval="minute60", count=3*24) # 최근 3일간의 데이터 사용
     df = df.reset_index()
     df['ds'] = df['index']
     df['y'] = df['close']
@@ -100,11 +99,18 @@ def predict_price(ticker):
     model.fit(data)
     future = model.make_future_dataframe(periods=24, freq='H')
     forecast = model.predict(future)
-    closeDf = forecast[forecast['ds'] == forecast.iloc[-1]['ds'].replace(hour=9)]
-    if len(closeDf) == 0:
-        closeDf = forecast[forecast['ds'] == data.iloc[-1]['ds'].replace(hour=9)]
-    closeValue = closeDf['yhat'].values[0]
-    close_price = closeValue
+    # 9시 종가 예측
+    closeDf_9 = forecast[forecast['ds'] == forecast.iloc[-1]['ds'].replace(hour=9)]
+    if len(closeDf_9) == 0:
+        closeDf_9 = forecast[forecast['ds'] == data.iloc[-1]['ds'].replace(hour=9)]
+    closeValue_9 = closeDf_9['yhat'].values[0]
+    # 21시 종가 예측
+    closeDf_21 = forecast[forecast['ds'] == forecast.iloc[-1]['ds'].replace(hour=21)]
+    if len(closeDf_21) == 0:
+        closeDf_21 = forecast[forecast['ds'] == data.iloc[-1]['ds'].replace(hour=21)]
+    closeValue_21 = closeDf_21['yhat'].values[0]
+    # 결과 저장
+    close_price = (closeValue_9, closeValue_21)
 predict_price("KRW-BTC")
 schedule.every().hour.do(lambda: predict_price("KRW-BTC"))
 
@@ -137,7 +143,7 @@ while True:
             target_price = predict_target_price(COIN, 'low')
             sell_price = predict_target_price(COIN, 'high')
             PriceEase=(sell_price-target_price)*0.15
-        if krw is not None and current_price <= target_price and target_price < sell_price-(PriceEase*3) and current_price < close_price:
+        if krw is not None and current_price <= target_price and target_price < sell_price-(PriceEase*3) and current_price < close_price[0] and current_price < close_price[1]:
             if krw > 10000:
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995

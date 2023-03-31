@@ -149,7 +149,8 @@ sell_price = predict_target_price("high")
 current_price = get_current_price(COIN)
 btc = get_balance("BTC")
 bull_market = is_bull_market(COIN)
-PriceEase=(sell_price-target_price)*0.15
+PriceEase=round((sell_price-target_price)*0.1, 1)
+multiplier = 1
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 print("매수가 조회 :",target_price)
 print("매도가 조회 :",sell_price)
@@ -171,10 +172,10 @@ while True:
                 buy_amount = krw * 0.9995 * buy_unit
             target_price = predict_target_price(COIN, 'low')
             sell_price = predict_target_price(COIN, 'high')
-            PriceEase=(sell_price-target_price)*0.15
+            PriceEase=round((sell_price-target_price)*0.1, 1)
             bull_market = is_bull_market(COIN)
         # 매수 조건
-        if krw is not None and current_price <= target_price and target_price < sell_price-(PriceEase*5) and current_price < close_price[0] and current_price < close_price[1]:
+        if krw is not None and current_price <= target_price and target_price < sell_price-(PriceEase*4) and current_price < close_price[0] and current_price < close_price[1]:
             if krw > 10000 and bull_market==True :
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
@@ -194,8 +195,8 @@ while True:
             time_since_last_buy = datetime.now() - last_buy_time
             if time_since_last_buy.total_seconds() >= 3600: # 1시간마다
                 multiplier += 1
-                if multiplier>5:
-                    multiplier=5
+                if multiplier>4:
+                    multiplier=4
                     last_buy_time = None
                 last_buy_time = datetime.now()
         time.sleep(1)

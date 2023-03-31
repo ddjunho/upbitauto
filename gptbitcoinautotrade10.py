@@ -155,7 +155,7 @@ print("현재가 조회 :",current_price)
 print("상승장 예측 :",bull_market)
 print("원화잔고 :",krw)
 print("비트코인잔고 :",btc)
-print("목표가 완화 :",PriceEase)
+print("목표가 완화 :",PriceEase*5)
 print("autotrade start")
 # 스케줄러 실행
 while True:

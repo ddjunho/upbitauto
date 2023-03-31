@@ -9,6 +9,8 @@ import requests.exceptions
 import simplejson.errors
 from datetime import datetime
 from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
 from fbprophet import Prophet
 from upbit_keys import access, secret
 tf.config.run_functions_eagerly(True)

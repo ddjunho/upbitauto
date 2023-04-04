@@ -110,11 +110,12 @@ def is_bull_market(ticker):
     model = RandomForestClassifier(n_estimators=100)
     # 학습
     model.fit(X_train, y_train)
-    # 예측
-    y_pred = model.predict(X_test.iloc[-1].values.reshape(1,-1))
-    if y_pred[0]>= -0.4:
+    # 예측 확률 계산
+    proba = model.predict_proba(X_test.iloc[-1].values.reshape(1,-1))[0][1]
+    # 조건 검사
+    if proba >= 0.46:
         return True
-    else: 
+    else:
         return False
 
 close_price = 0

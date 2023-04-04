@@ -177,7 +177,7 @@ while True:
             PriceEase=round((sell_price-target_price)*0.1, 1)
             bull_market = is_bull_market(COIN)
         # 매수 조건
-        if krw is not None and current_price <= target_price + PriceEase*2 and target_price + PriceEase*2 < sell_price-(PriceEase*3) and current_price < close_price[0] and current_price < close_price[1]:
+        if krw is not None and current_price <= target_price + PriceEase*2 and target_price + PriceEase*2 < sell_price-(PriceEase*3) and current_price < close_price[0] :
             if krw > 10000 and bull_market==True :
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995

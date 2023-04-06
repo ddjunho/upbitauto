@@ -46,12 +46,9 @@ def predict_target_price(target_type):
     ticker = input_data['arguments']['ticker']
     target_type = input_data['arguments']['target_type']
     # 데이터 불러오기
-    df_list = []
-    for i in range(0, 1460, 200):
-        df = pyupbit.get_ohlcv(ticker, interval="minute360", count=200, to=to)
-        df_list.append(df)
-        to = df.index[0]
-    DF = pd.concat(df_list)
+    df1 = pyupbit.get_ohlcv(ticker, interval="minute360", count=183)
+    df2 = pyupbit.get_ohlcv(ticker, interval="minute360", count=183, to=df1.index[0])
+    DF = pd.concat([df2, df1])
     # 입력 데이터 전처리
     X = DF[['open', 'high', 'low', 'close', 'volume']].values
     X_scaler = StandardScaler()
@@ -63,14 +60,14 @@ def predict_target_price(target_type):
     # 학습 데이터 생성
     X_train = []
     y_train = []
-    for i in range(100, len(X)):
-        X_train.append(X[i - 100:i, :])
+    for i in range(365, len(X)):
+        X_train.append(X[i - 365:i, :])
         y_train.append(y[i, 0])
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(128, input_shape=(100, 5)),
+        tf.keras.layers.LSTM(128, input_shape=(365, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(32, activation='relu'),
@@ -81,15 +78,15 @@ def predict_target_price(target_type):
     # 학습
     model.fit(X_train, y_train, epochs=1, verbose=1)
     # 새로운 데이터에 대한 예측
-    last_data = DF[['open', 'high', 'low', 'close', 'volume']].iloc[-100:].values
+    last_data = DF[['open', 'high', 'low', 'close', 'volume']].iloc[-365:].values
     last_data_mean = last_data.mean(axis=0)
     last_data_std = last_data.std(axis=0)
     last_data = (last_data - last_data_mean) / last_data_std
-    # 예측할 데이터의 shape를 (1, 100, 5)로 변경
+    # 예측할 데이터의 shape를 (1, 365, 5)로 변경
     last_data = np.expand_dims(last_data, axis=0)
     predicted_price = model.predict(last_data)
     predicted_price = y_scaler.inverse_transform(predicted_price)
-    predicted_price = predicted_price.flatten()[0] # 이중 리스트를 일차원으로 변경하고 첫 번째 원소를 선택
+    predicted_price = predicted_price.flatten()[0]  # 이중 리스트를 일차원으로 변경하고 첫 번째 원소를 선택
     return float(predicted_price)
 
 def is_bull_market(ticker):

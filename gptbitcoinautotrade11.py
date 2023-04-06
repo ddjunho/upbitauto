@@ -46,9 +46,15 @@ def predict_target_price(target_type):
     ticker = input_data['arguments']['ticker']
     target_type = input_data['arguments']['target_type']
     # 데이터 불러오기
-    df1 = pyupbit.get_ohlcv(ticker, interval="day", count=183)
-    df2 = pyupbit.get_ohlcv(ticker, interval="day", count=183, to=df1.index[0])
-    DF = pd.concat([df2, df1])
+    df1 = pyupbit.get_ohlcv(ticker, interval="minute240", count=183)
+    df2 = pyupbit.get_ohlcv(ticker, interval="minute240", count=183, to=df1.index[0])
+    df3 = pyupbit.get_ohlcv(ticker, interval="minute240", count=183, to=df2.index[0])
+    df4 = pyupbit.get_ohlcv(ticker, interval="minute240", count=183, to=df3.index[0])
+    df5 = pyupbit.get_ohlcv(ticker, interval="minute240", count=183, to=df4.index[0])
+    df6 = pyupbit.get_ohlcv(ticker, interval="minute240", count=183, to=df5.index[0])
+    df7 = pyupbit.get_ohlcv(ticker, interval="minute240", count=183, to=df6.index[0])
+    df8 = pyupbit.get_ohlcv(ticker, interval="minute240", count=183, to=df7.index[0])
+    DF = pd.concat([df8, df7, df6, df5, df4, df3, df2, df1])
     # 입력 데이터 전처리
     X = DF[['open', 'high', 'low', 'close', 'volume']].values
     X_scaler = StandardScaler()
@@ -60,15 +66,14 @@ def predict_target_price(target_type):
     # 학습 데이터 생성
     X_train = []
     y_train = []
-    for i in range(365, len(X)):
-        X_train.append(X[i - 365:i, :])
+    for i in range(91, len(X)):
+        X_train.append(X[i - 91:i, :])
         y_train.append(y[i, 0])
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
         tf.keras.layers.LSTM(128, input_shape=(365, 5)),
-        tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(32, activation='relu'),
         tf.keras.layers.Dense(1)
@@ -78,7 +83,7 @@ def predict_target_price(target_type):
     # 학습
     model.fit(X_train, y_train, epochs=100, verbose=1)
     # 새로운 데이터에 대한 예측
-    last_data = DF[['open', 'high', 'low', 'close', 'volume']].iloc[-365:].values
+    last_data = DF[['open', 'high', 'low', 'close', 'volume']].iloc[-91:].values
     last_data_mean = last_data.mean(axis=0)
     last_data_std = last_data.std(axis=0)
     last_data = (last_data - last_data_mean) / last_data_std
@@ -86,7 +91,7 @@ def predict_target_price(target_type):
     last_data = np.expand_dims(last_data, axis=0)
     predicted_price = model.predict(last_data)
     predicted_price = y_scaler.inverse_transform(predicted_price)
-    predicted_price = predicted_price.flatten()[0]  # 이중 리스트를 일차원으로 변경하고 첫 번째 원소를 선택
+    predicted_price = predicted_price.flatten()[0] # 이중 리스트를 일차원으로 변경하고 첫 번째 원소를 선택
     return float(predicted_price)
 
 def is_bull_market(ticker):
@@ -113,7 +118,7 @@ def is_bull_market(ticker):
     # 예측 확률 계산
     proba = model.predict_proba(X_test.iloc[-1].values.reshape(1,-1))[0][1]
     # 조건 검사
-    if proba >= 0.46:
+    if proba >= 0.45:
         return True
     else:
         return False
@@ -130,18 +135,16 @@ def predict_price(ticker):
     model.fit(data)
     future = model.make_future_dataframe(periods=24, freq='H')
     forecast = model.predict(future)
-    # 9시 종가 예측
-    closeDf_9 = forecast[forecast['ds'] == forecast.iloc[-1]['ds'].replace(hour=9)]
-    if len(closeDf_9) == 0:
-        closeDf_9 = forecast[forecast['ds'] == data.iloc[-1]['ds'].replace(hour=9)]
-    closeValue_9 = closeDf_9['yhat'].values[0]
-    # 21시 종가 예측
-    closeDf_21 = forecast[forecast['ds'] == forecast.iloc[-1]['ds'].replace(hour=21)]
-    if len(closeDf_21) == 0:
-        closeDf_21 = forecast[forecast['ds'] == data.iloc[-1]['ds'].replace(hour=21)]
-    closeValue_21 = closeDf_21['yhat'].values[0]
+    # 9시, 15시, 21시, 3시 종가 예측
+    close_values = []
+    for hour in [3, 9, 15, 21]:
+        close_df = forecast[forecast['ds'] == forecast.iloc[-1]['ds'].replace(hour=hour)]
+        if len(close_df) == 0:
+            close_df = forecast[forecast['ds'] == data.iloc[-1]['ds'].replace(hour=hour)]
+        close_value = close_df['yhat'].values[0]
+        close_values.append(close_value)
     # 결과 저장
-    close_price = (closeValue_9, closeValue_21)
+    close_price = tuple(close_values)
 predict_price("KRW-BTC")
 schedule.every().hour.do(lambda: predict_price("KRW-BTC"))
 
@@ -157,6 +160,7 @@ PriceEase=round((sell_price-target_price)*0.1, 1)
 multiplier = 1
 last_buy_time = None
 time_since_last_buy = None
+is_tradeable = False
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 print("매수가 조회 :",target_price)
 print("매도가 조회 :",sell_price)
@@ -172,17 +176,37 @@ while True:
         schedule.run_pending()
         now = datetime.now()
         current_price = get_current_price(COIN)
-        if now.hour == 9 and now.minute == 0 :
+        if now.hour in [3, 9, 15, 21] and now.minute == 0:
             if krw <= get_balance("KRW"):
                 krw = get_balance("KRW")
                 buy_amount = krw * 0.9995 * buy_unit
             target_price = predict_target_price(COIN, 'low')
             sell_price = predict_target_price(COIN, 'high')
-            PriceEase=round((sell_price-target_price)*0.1, 1)
+            PriceEase = round((sell_price - target_price) * 0.1, 1)
             bull_market = is_bull_market(COIN)
+        if now.hour == 9 and now.minute == 0:
+	        if current_price < close_price[0]: 
+    	        is_tradeable = True
+	        else:
+		        is_tradeable = False
+        elif now.hour == 15 and now.minute == 0:
+	        if current_price < close_price[1]: 
+    	        is_tradeable = True
+	        else:
+		        is_tradeable = False
+        elif now.hour == 21 and now.minute == 0: 
+	        if current_price < close_price[2]: 
+    	        is_tradeable = True
+	        else:
+		        is_tradeable = False
+        elif now.hour == 3 and now.minute == 0: 
+	        if current_price < close_price[3]: 
+    	        is_tradeable = True
+	        else:
+		        is_tradeable = False
         # 매수 조건
-        if krw is not None and current_price <= target_price + PriceEase*2 and target_price + PriceEase*2 < sell_price-(PriceEase*3) and current_price < close_price[0] :
-            if krw > 10000 and bull_market==True :
+        if krw is not None and krw > 10000:
+            if bull_market==True and is_tradeable == True and current_price <= target_price + PriceEase*2 and target_price + PriceEase*2 < sell_price-(PriceEase*3):
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)
@@ -198,13 +222,13 @@ while True:
                     print(now, "매도")
         # PriceEase 증가 조건
         if last_buy_time is not None:
-            time_since_last_buy = datetime.now() - last_buy_time
-            if time_since_last_buy.total_seconds() >= 5400: # 1시간30분마다
+            time_since_last_buy = now - last_buy_time
+            if time_since_last_buy.total_seconds() >= 3600: # 1시간마다
                 multiplier += 1
                 if multiplier>3:
-                    multiplier=3
+                    multiplier=4
                     last_buy_time = None
-                last_buy_time = datetime.now()
+                last_buy_time = now
         time.sleep(1)
     except Exception as e:
         print(e)

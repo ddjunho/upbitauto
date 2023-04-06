@@ -131,7 +131,7 @@ def predict_price(ticker):
     model.fit(data)
     future = model.make_future_dataframe(periods=24, freq='H')
     forecast = model.predict(future)
-    # 9시, 15시, 21시, 3시 종가 예측
+    # 3시, 9시, 15시, 21시 종가 예측
     close_values = []
     for hour in [3, 9, 15, 21]:
         close_df = forecast[forecast['ds'] == forecast.iloc[-1]['ds'].replace(hour=hour)]

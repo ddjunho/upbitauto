@@ -184,26 +184,26 @@ while True:
             sell_price = predict_target_price(COIN, 'high')
             PriceEase = round((sell_price - target_price) * 0.1, 1)
             bull_market = is_bull_market(COIN)
-	if now.hour == 9 and now.minute == 0:
-    		if current_price < close_price[0]:
-        		is_tradeable = True
-    		else:
-        		is_tradeable = False
-	elif now.hour == 15 and now.minute == 0:
-    		if current_price < close_price[1]:
-        		is_tradeable = True
-    		else:
-        		is_tradeable = False
-	elif now.hour == 21 and now.minute == 0: 
-    		if current_price < close_price[2]:
-        		is_tradeable = True
-    		else:
-        		is_tradeable = False
-	elif now.hour == 3 and now.minute == 0:
-    		if current_price < close_price[3]:
-        		is_tradeable = True
-    		else:
-        		is_tradeable = False
+        if now.hour == 9 and now.minute == 0:
+            if current_price < close_price[0]:
+                is_tradeable = True
+            else:
+                is_tradeable = False
+        elif now.hour == 15 and now.minute == 0:
+            if current_price < close_price[1]:
+                is_tradeable = True
+            else:
+                is_tradeable = False
+        elif now.hour == 21 and now.minute == 0: 
+            if current_price < close_price[2]:
+                is_tradeable = True
+            else:
+                is_tradeable = False
+        elif now.hour == 3 and now.minute == 0:
+            if current_price < close_price[3]:
+                is_tradeable = True
+            else:
+                is_tradeable = False
         # 매수 조건
         if krw > 10000:
             if bull_market==True and is_tradeable == True and current_price <= target_price + PriceEase*2 and target_price + PriceEase*2 < sell_price-(PriceEase*3):

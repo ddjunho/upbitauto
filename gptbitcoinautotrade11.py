@@ -185,22 +185,22 @@ while True:
             PriceEase = round((sell_price - target_price) * 0.1, 1)
             bull_market = is_bull_market(COIN)
         if now.hour == 9 and now.minute == 0:
-	    if current_price < close_price[0]: 
+	    if current_price < close_price[0]:
     	        is_tradeable = True
 	    else:
 		is_tradeable = False
         elif now.hour == 15 and now.minute == 0:
-	    if current_price < close_price[1]: 
+	    if current_price < close_price[1]:
     	        is_tradeable = True
 	    else:
 		is_tradeable = False
         elif now.hour == 21 and now.minute == 0: 
-	    if current_price < close_price[2]: 
+	    if current_price < close_price[2]:
     	        is_tradeable = True
 	    else:
 		is_tradeable = False
-        elif now.hour == 3 and now.minute == 0: 
-	    if current_price < close_price[3]: 
+        elif now.hour == 3 and now.minute == 0:
+	    if current_price < close_price[3]:
     	        is_tradeable = True
 	    else:
 		is_tradeable = False

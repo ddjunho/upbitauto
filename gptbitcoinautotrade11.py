@@ -84,7 +84,7 @@ def predict_target_price(target_type):
     last_data_mean = last_data.mean(axis=0)
     last_data_std = last_data.std(axis=0)
     last_data = (last_data - last_data_mean) / last_data_std
-    # 예측할 데이터의 shape를 (1, 365, 5)로 변경
+    # 예측할 데이터의 shape를 (1, 91, 5)로 변경
     last_data = np.expand_dims(last_data, axis=0)
     predicted_price = model.predict(last_data)
     predicted_price = y_scaler.inverse_transform(predicted_price)

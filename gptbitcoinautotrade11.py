@@ -73,7 +73,7 @@ def predict_target_price(target_type):
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(128, input_shape=(365, 5)),
+        tf.keras.layers.LSTM(128, input_shape=(91, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(32, activation='relu'),
         tf.keras.layers.Dense(1)

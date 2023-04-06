@@ -78,7 +78,7 @@ def predict_target_price(target_type):
     # 모델 컴파일
     model.compile(optimizer='adam', loss='mse', run_eagerly=True)
     # 학습
-    model.fit(X_train, y_train, epochs=100, verbose=1)
+    model.fit(X_train, y_train, epochs=1, verbose=1)
     # 새로운 데이터에 대한 예측
     last_data = DF[['open', 'high', 'low', 'close', 'volume']].iloc[-91:].values
     last_data_mean = last_data.mean(axis=0)

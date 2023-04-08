@@ -1,5 +1,6 @@
 import time
 import json
+import asyncio
 import pyupbit
 import pandas as pd
 import numpy as np
@@ -160,16 +161,17 @@ last_buy_time = None
 time_since_last_buy = None
 is_tradeable = False
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
-def chat_bot():
+async def chat_bot():
     # proba 값을 Telegram으로 전송
     bot_token = "5915962696:AAF14G7Kg-N2tk5i_w4JGYICqamwrUNXP1c" # 봇 토큰
     bot_chat_id = "5820794752" # 채팅 ID
     bot = Bot(token=bot_token)
     message = "매수가 조회 : {}\n매도가 조회 : {}\n현재가 조회 : {}\n상승장 예측 : {} {}\n원화잔고 : {}\n비트코인잔고 : {}\n목표가 완화 : {}".format(target_price, sell_price, current_price, proba, bull_market, krw, btc, PriceEase*3)
-    bot.sendMessage(chat_id=bot_chat_id, text=message)
+    await bot.send_message(chat_id=bot_chat_id, text=message)
     if bull_market==True:
         message = "45%이상으로 예측되므로 매매를 시작합니다. \n\n★Autotrade start★"
-        bot.sendMessage(chat_id=bot_chat_id, text=message)
+        await bot.send_message(chat_id=bot_chat_id, text=message)
+asyncio.run(chat_bot())
 chat_bot()
 schedule.every().day.at("09:00").do(chat_bot)
 print("autotrade start")

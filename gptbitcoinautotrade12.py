@@ -70,17 +70,15 @@ def predict_target_price(target_type):
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(128, input_shape=(549, 5)),
+        tf.keras.layers.LSTM(64, input_shape=(549, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(32, activation='relu'),
-        tf.keras.layers.Dense(16, activation='relu'),
-        tf.keras.layers.Dense(8, activation='relu'),
         tf.keras.layers.Dense(1)
     ])
     # 모델 컴파일
     model.compile(optimizer='adam', loss='mse', run_eagerly=True)
     # 학습
-    model.fit(X_train, y_train, epochs=200, verbose=1)
+    model.fit(X_train, y_train, epochs=100, verbose=1)
     # 새로운 데이터에 대한 예측
     last_data = DF[['open', 'high', 'low', 'close', 'volume']].iloc[-549:].values
     last_data_mean = last_data.mean(axis=0)

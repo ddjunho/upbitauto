@@ -50,7 +50,7 @@ def predict_target_price(target_type):
     # 데이터 불러오기
     df1 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200)
     df2 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200, to=df1.index[0])
-    df3 = pyupbit.get_ohlcv(ticker, interval="minute360", count=150, to=df2.index[0])
+    df3 = pyupbit.get_ohlcv(ticker, interval="minute360", count=1, to=df2.index[0])
     DF = pd.concat([df3, df2, df1])
     # 입력 데이터 전처리
     X = DF[['open', 'high', 'low', 'close', 'volume']].values
@@ -63,14 +63,15 @@ def predict_target_price(target_type):
     # 학습 데이터 생성
     X_train = []
     y_train = []
-    for i in range(549, len(X)):
-        X_train.append(X[i - 549:i, :])
+    data=400
+    for i in range(data, len(X)):
+        X_train.append(X[i - data:i, :])
         y_train.append(y[i, 0])
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(64, input_shape=(549, 5)),
+        tf.keras.layers.LSTM(64, input_shape=(data, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(32, activation='relu'),
         tf.keras.layers.Dense(1)
@@ -80,7 +81,7 @@ def predict_target_price(target_type):
     # 학습
     model.fit(X_train, y_train, epochs=100, verbose=1)
     # 새로운 데이터에 대한 예측
-    last_data = DF[['open', 'high', 'low', 'close', 'volume']].iloc[-549:].values
+    last_data = DF[['open', 'high', 'low', 'close', 'volume']].iloc[-data:].values
     last_data_mean = last_data.mean(axis=0)
     last_data_std = last_data.std(axis=0)
     last_data = (last_data - last_data_mean) / last_data_std

@@ -210,8 +210,8 @@ while True:
             else:
                 is_tradeable = False
         # 매수 조건
-        if krw > 10000:
-            if bull_market==True and is_tradeable == True and current_price <= target_price + PriceEase*2 and target_price + PriceEase*2 < sell_price-(PriceEase*3):
+        if current_price <= target_price + PriceEase*2:
+            if bull_market==True and is_tradeable == True and krw > 10000 and target_price + PriceEase*2 < sell_price-(PriceEase*3):
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)

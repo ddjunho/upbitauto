@@ -73,6 +73,8 @@ def predict_target_price(target_type):
         tf.keras.layers.LSTM(128, input_shape=(549, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(32, activation='relu'),
+        tf.keras.layers.Dense(16, activation='relu'),
+        tf.keras.layers.Dense(8, activation='relu'),
         tf.keras.layers.Dense(1)
     ])
     # 모델 컴파일

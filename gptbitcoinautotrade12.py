@@ -72,7 +72,6 @@ def predict_target_price(target_type):
     model = tf.keras.models.Sequential([
         tf.keras.layers.LSTM(128, input_shape=(480, 5)),
         tf.keras.layers.Dense(64, activation='relu'),
-        tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(32, activation='relu'),
         tf.keras.layers.Dense(1)
     ])

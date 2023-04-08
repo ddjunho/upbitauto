@@ -50,8 +50,9 @@ def predict_target_price(target_type):
     # 데이터 불러오기
     df1 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200)
     df2 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200, to=df1.index[0])
-    df3 = pyupbit.get_ohlcv(ticker, interval="minute360", count=1, to=df2.index[0])
-    DF = pd.concat([df3, df2, df1])
+    df3 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200, to=df2.index[0])
+    df4 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200, to=df3.index[0])
+    DF = pd.concat([df4, df3, df2, df1])
     # 입력 데이터 전처리
     X = DF[['open', 'high', 'low', 'close', 'volume']].values
     X_scaler = StandardScaler()
@@ -63,7 +64,7 @@ def predict_target_price(target_type):
     # 학습 데이터 생성
     X_train = []
     y_train = []
-    data=400
+    data=799
     for i in range(data, len(X)):
         X_train.append(X[i - data:i, :])
         y_train.append(y[i, 0])

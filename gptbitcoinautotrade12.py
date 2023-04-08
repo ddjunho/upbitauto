@@ -167,6 +167,10 @@ def chat_bot():
     bot = Bot(token=bot_token)
     message = "매수가 조회 : {}\n매도가 조회 : {}\n현재가 조회 : {}\n상승장 예측 : {} {}\n원화잔고 : {}\n비트코인잔고 : {}\n목표가 완화 : {}".format(target_price, sell_price, current_price, proba, bull_market, krw, btc, PriceEase*3)
     bot.sendMessage(chat_id=bot_chat_id, text=message)
+    if bull_market==True
+        message = "45%이상으로 예측됨에 따라 매매를 시작합니다. \n\n★Autotrade start★"
+        bot.sendMessage(chat_id=bot_chat_id, text=message)
+chat_bot()
 schedule.every().day.at("09:00").do(chat_bot)
 print("autotrade start")
 # 스케줄러 실행

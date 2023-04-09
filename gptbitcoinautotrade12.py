@@ -174,8 +174,10 @@ async def chat_bot():
         message = "45%이상으로 예측되므로 매매를 시작합니다. \n\n★Autotrade start★"
         await bot.send_message(chat_id=bot_chat_id, text=message)
 asyncio.run(chat_bot())
-chat_bot()
-schedule.every().day.at("09:00").do(chat_bot)
+def run_chat_bot():
+    asyncio.run(chat_bot())
+
+schedule.every().day.at("09:00").do(run_chat_bot)
 print("autotrade start")
 # 스케줄러 실행
 while True:

@@ -129,7 +129,7 @@ def is_bull_market(ticker):
     DF = DF.dropna()
     # 입력 데이터와 출력 데이터 분리
     X = DF[['open', 'high', 'low', 'close', 'volume', 'ma5', 'ma10', 'ma20', 'ma60', 'ma120', 'rsi', 'macd', 'macdsignal', 'macdhist']]
-    y = (DF['close'].shift(-360) > DF['close']).astype(int)
+    y = (DF['close'].shift(-36) > DF['close']).astype(int)
     # 학습 데이터와 검증 데이터 분리
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
     # 모델 구성
@@ -151,12 +151,17 @@ target_price = predict_target_price("low")
 sell_price = predict_target_price("high")
 current_price = get_current_price(COIN)
 btc = get_balance("BTC")
-bull_market = is_bull_market(COIN)
+
+def scheduled_task():
+    global bull_market
+    bull_market = is_bull_market(COIN)
+schedule.every(30).minutes.do(scheduled_task)
 PriceEase=round((sell_price-target_price)*0.1, 1)
 multiplier = 1
 last_buy_time = None
 time_since_last_buy = None
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
+bull_market = is_bull_market(COIN)
 async def chat_bot():
     # proba 값을 Telegram으로 전송
     bot_token = "5915962696:AAF14G7Kg-N2tk5i_w4JGYICqamwrUNXP1c" # 봇 토큰
@@ -175,6 +180,7 @@ while True:
         schedule.run_pending()
         now = datetime.now()
         current_price = get_current_price(COIN)
+        
         if now.hour in [3, 9, 15, 21] and now.minute == 0:
             if krw <= get_balance("KRW"):
                 krw = get_balance("KRW")

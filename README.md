@@ -12,3 +12,5 @@ gptbitcoinautotrade11.py -> 6시간 단위로 3개월 모델학습
 gptbitcoinautotrade12.py -> 매일 오전 9시에 실행 값을 Telegram으로 전송
 
 gptbitcoinautotrade15.py -> 모델의 손실함수에 L2 규제를 적용하고 규제 강도를 0.01로 설정
+
+gptbitcoinautotrade16.py -> RSI와 MACD 기술적 지표를 추가. 또한 랜덤 포레스트 분류기 모델의 max_depth 매개변수를 5로 설정하여 모델의 복잡도를 제한

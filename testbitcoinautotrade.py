@@ -1,5 +1,6 @@
 import time
 import json
+import asyncio
 import pyupbit
 import pandas as pd
 import numpy as np
@@ -11,8 +12,9 @@ from datetime import datetime
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from fbprophet import Prophet
+from tensorflow.keras import regularizers
 from upbit_keys import access, secret
+from telegram import Bot
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.2  # 분할 매수 금액 단위 설정
 
@@ -46,9 +48,11 @@ def predict_target_price(target_type):
     ticker = input_data['arguments']['ticker']
     target_type = input_data['arguments']['target_type']
     # 데이터 불러오기
-    df1 = pyupbit.get_ohlcv(ticker, interval="minute360", count=183)
-    df2 = pyupbit.get_ohlcv(ticker, interval="minute360", count=183, to=df1.index[0])
-    DF = pd.concat([df2, df1])
+    df1 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200)
+    df2 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200, to=df1.index[0])
+    df3 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200, to=df2.index[0])
+    df4 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200, to=df3.index[0])
+    DF = pd.concat([df4, df3, df2, df1])
     # 입력 데이터 전처리
     X = DF[['open', 'high', 'low', 'close', 'volume']].values
     X_scaler = StandardScaler()
@@ -60,29 +64,31 @@ def predict_target_price(target_type):
     # 학습 데이터 생성
     X_train = []
     y_train = []
-    for i in range(365, len(X)):
-        X_train.append(X[i - 365:i, :])
+    data=799
+    for i in range(data, len(X)):
+        X_train.append(X[i - data:i, :])
         y_train.append(y[i, 0])
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(128, input_shape=(365, 5)),
-        tf.keras.layers.Dense(64, activation='relu'),
-        tf.keras.layers.Dense(64, activation='relu'),
-        tf.keras.layers.Dense(32, activation='relu'),
+        tf.keras.layers.LSTM(128, input_shape=(data, 5)),
+        tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
+        tf.keras.layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
+        tf.keras.layers.Dense(16, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
+        tf.keras.layers.Dense(8, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
         tf.keras.layers.Dense(1)
     ])
     # 모델 컴파일
     model.compile(optimizer='adam', loss='mse', run_eagerly=True)
     # 학습
-    model.fit(X_train, y_train, epochs=100, verbose=1)
+    model.fit(X_train, y_train, epochs=1, verbose=1)
     # 새로운 데이터에 대한 예측
-    last_data = DF[['open', 'high', 'low', 'close', 'volume']].iloc[-365:].values
+    last_data = DF[['open', 'high', 'low', 'close', 'volume']].iloc[-data:].values
     last_data_mean = last_data.mean(axis=0)
     last_data_std = last_data.std(axis=0)
     last_data = (last_data - last_data_mean) / last_data_std
-    # 예측할 데이터의 shape를 (1, 365, 5)로 변경
+    # 예측할 데이터의 shape를 (1,549, 5)로 변경
     last_data = np.expand_dims(last_data, axis=0)
     predicted_price = model.predict(last_data)
     predicted_price = y_scaler.inverse_transform(predicted_price)
@@ -90,24 +96,44 @@ def predict_target_price(target_type):
     return float(predicted_price)
 
 def is_bull_market(ticker):
-    df1 = pyupbit.get_ohlcv(ticker, interval="day", count=183)
-    df2 = pyupbit.get_ohlcv(ticker, interval="day", count=183, to=df1.index[0])
-    DF = pd.concat([df2, df1])
+    global proba
+    df1 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200)
+    df2 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200, to=df1.index[0])
+    df3 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200, to=df2.index[0])
+    df4 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200, to=df3.index[0])
+    DF = pd.concat([df4, df3, df2, df1])
     # 기술적 지표 추가
     DF['ma5'] = DF['close'].rolling(window=5).mean()
     DF['ma10'] = DF['close'].rolling(window=10).mean()
     DF['ma20'] = DF['close'].rolling(window=20).mean()
     DF['ma60'] = DF['close'].rolling(window=60).mean()
     DF['ma120'] = DF['close'].rolling(window=120).mean()
+    # RSI 계산
+    delta = DF['close'].diff()
+    up = delta.clip(lower=0)
+    down = -1 * delta.clip(upper=0)
+    ema_up = up.ewm(com=13, adjust=False).mean()
+    ema_down = down.ewm(com=13, adjust=False).mean()
+    rs = ema_up / ema_down
+    DF['rsi'] = 100 - (100 / (1 + rs))
+    # MACD 계산
+    exp1 = DF['close'].ewm(span=12, adjust=False).mean()
+    exp2 = DF['close'].ewm(span=26, adjust=False).mean()
+    macd = exp1 - exp2
+    signal = macd.ewm(span=9, adjust=False).mean()
+    hist = macd - signal
+    DF['macd'] = macd
+    DF['macdsignal'] = signal
+    DF['macdhist'] = hist
     # 결측값 제거
     DF = DF.dropna()
     # 입력 데이터와 출력 데이터 분리
-    X = DF[['open', 'high', 'low', 'close', 'volume', 'ma5', 'ma10', 'ma20', 'ma60', 'ma120']]
-    y = (DF['close'].shift(-1) > DF['close']).astype(int)
+    X = DF[['open', 'high', 'low', 'close', 'volume', 'ma5', 'ma10', 'ma20', 'ma60', 'ma120', 'rsi', 'macd', 'macdsignal', 'macdhist']]
+    y = (DF['close'].shift(-360) > DF['close']).astype(int)
     # 학습 데이터와 검증 데이터 분리
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
     # 모델 구성
-    model = RandomForestClassifier(n_estimators=100)
+    model = RandomForestClassifier(n_estimators=100, max_depth=5)
     # 학습
     model.fit(X_train, y_train)
     # 예측 확률 계산
@@ -117,32 +143,6 @@ def is_bull_market(ticker):
         return True
     else:
         return False
-
-close_price = 0
-def predict_price(ticker):
-    global close_price
-    df = pyupbit.get_ohlcv(ticker, interval="minute60")
-    df = df.reset_index()
-    df['ds'] = df['index']
-    df['y'] = df['close']
-    data = df[['ds','y']]
-    model = Prophet()
-    model.fit(data)
-    future = model.make_future_dataframe(periods=24, freq='H')
-    forecast = model.predict(future)
-    # 9시, 15시, 21시, 3시 종가 예측
-    close_values = []
-    for hour in [3, 9, 15, 21]:
-        close_df = forecast[forecast['ds'] == forecast.iloc[-1]['ds'].replace(hour=hour)]
-        if len(close_df) == 0:
-            close_df = forecast[forecast['ds'] == data.iloc[-1]['ds'].replace(hour=hour)]
-        close_value = close_df['yhat'].values[0]
-        close_values.append(close_value)
-    # 결과 저장
-    close_price = tuple(close_values)
-predict_price("KRW-BTC")
-schedule.every().hour.do(lambda: predict_price("KRW-BTC"))
-
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 krw = get_balance("KRW")
@@ -155,15 +155,18 @@ PriceEase=round((sell_price-target_price)*0.1, 1)
 multiplier = 1
 last_buy_time = None
 time_since_last_buy = None
-is_tradeable = False
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
-print("매수가 조회 :",target_price)
-print("매도가 조회 :",sell_price)
-print("현재가 조회 :",current_price)
-print("상승장 예측 :",bull_market)
-print("원화잔고 :",krw)
-print("비트코인잔고 :",btc)
-print("목표가 완화 :",PriceEase*3)
+async def chat_bot():
+    # proba 값을 Telegram으로 전송
+    bot_token = "5915962696:AAF14G7Kg-N2tk5i_w4JGYICqamwrUNXP1c" # 봇 토큰
+    bot_chat_id = "5820794752" # 채팅 ID
+    bot = Bot(token=bot_token)
+    message = "매수가 조회 : {}\n매도가 조회 : {}\n현재가 조회 : {}\n상승장 예측 : {} {}\n원화잔고 : {}\n비트코인잔고 : {}\n목표가 완화 : {}".format(target_price, sell_price, current_price, proba, bull_market, krw, btc, PriceEase*3)
+    await bot.send_message(chat_id=bot_chat_id, text=message)
+    if bull_market==True:
+        message = "45%이상으로 예측.\n★Autotrade start★"
+        await bot.send_message(chat_id=bot_chat_id, text=message)
+asyncio.run(chat_bot())
 print("autotrade start")
 # 스케줄러 실행
 while True:
@@ -179,29 +182,10 @@ while True:
             sell_price = predict_target_price(COIN, 'high')
             PriceEase = round((sell_price - target_price) * 0.1, 1)
             bull_market = is_bull_market(COIN)
-        if now.hour == 9 and now.minute == 0:
-            if current_price < close_price[0]:
-                is_tradeable = True
-            else:
-                is_tradeable = False
-        elif now.hour == 15 and now.minute == 0:
-            if current_price < close_price[1]:
-                is_tradeable = True
-            else:
-                is_tradeable = False
-        elif now.hour == 21 and now.minute == 0: 
-            if current_price < close_price[2]:
-                is_tradeable = True
-            else:
-                is_tradeable = False
-        elif now.hour == 3 and now.minute == 0:
-            if current_price < close_price[3]:
-                is_tradeable = True
-            else:
-                is_tradeable = False
+            asyncio.run(chat_bot())
         # 매수 조건
-        if krw > 10000:
-            if bull_market==True and is_tradeable == True and current_price <= target_price + PriceEase*2 and target_price + PriceEase*2 < sell_price-(PriceEase*3):
+        if current_price <= target_price + PriceEase*2:
+            if bull_market==True and krw > 10000 and target_price + PriceEase*2 < sell_price-(PriceEase*3):
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)

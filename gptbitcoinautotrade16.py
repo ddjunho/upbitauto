@@ -138,6 +138,7 @@ def is_bull_market(ticker):
     model.fit(X_train, y_train)
     # 예측 확률 계산
     proba = model.predict_proba(X_test.iloc[-1].values.reshape(1,-1))[0][1]
+    proba = round((proba), 2)
     # 조건 검사
     if proba >= 0.45:
         return True

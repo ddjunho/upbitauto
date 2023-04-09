@@ -12,6 +12,8 @@ from datetime import datetime
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
+from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
 from fbprophet import Prophet
 from upbit_keys import access, secret
 from telegram import Bot

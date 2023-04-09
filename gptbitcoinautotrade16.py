@@ -8,7 +8,6 @@ import schedule
 import tensorflow as tf
 import requests.exceptions
 import simplejson.errors
-import talib
 from datetime import datetime
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
@@ -107,8 +106,23 @@ def is_bull_market(ticker):
     DF['ma20'] = DF['close'].rolling(window=20).mean()
     DF['ma60'] = DF['close'].rolling(window=60).mean()
     DF['ma120'] = DF['close'].rolling(window=120).mean()
-    DF['rsi'] = talib.RSI(DF['close'])
-    DF['macd'], DF['macdsignal'], DF['macdhist'] = talib.MACD(DF['close'])
+    # RSI 계산
+    delta = DF['close'].diff()
+    up = delta.clip(lower=0)
+    down = -1 * delta.clip(upper=0)
+    ema_up = up.ewm(com=13, adjust=False).mean()
+    ema_down = down.ewm(com=13, adjust=False).mean()
+    rs = ema_up / ema_down
+    DF['rsi'] = 100 - (100 / (1 + rs))
+    # MACD 계산
+    exp1 = DF['close'].ewm(span=12, adjust=False).mean()
+    exp2 = DF['close'].ewm(span=26, adjust=False).mean()
+    macd = exp1 - exp2
+    signal = macd.ewm(span=9, adjust=False).mean()
+    hist = macd - signal
+    DF['macd'] = macd
+    DF['macdsignal'] = signal
+    DF['macdhist'] = hist
     # 결측값 제거
     DF = DF.dropna()
     # 입력 데이터와 출력 데이터 분리

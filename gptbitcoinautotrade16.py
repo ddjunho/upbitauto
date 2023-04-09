@@ -151,11 +151,6 @@ target_price = predict_target_price("low")
 sell_price = predict_target_price("high")
 current_price = get_current_price(COIN)
 btc = get_balance("BTC")
-
-def scheduled_task():
-    global bull_market
-    bull_market = is_bull_market(COIN)
-schedule.every(30).minutes.do(scheduled_task)
 PriceEase=round((sell_price-target_price)*0.1, 1)
 multiplier = 1
 last_buy_time = None
@@ -180,7 +175,6 @@ while True:
         schedule.run_pending()
         now = datetime.now()
         current_price = get_current_price(COIN)
-        
         if now.hour in [3, 9, 15, 21] and now.minute == 0:
             if krw <= get_balance("KRW"):
                 krw = get_balance("KRW")

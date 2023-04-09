@@ -138,7 +138,7 @@ def is_bull_market(ticker):
     model.fit(X_train, y_train)
     # 예측 확률 계산
     proba = model.predict_proba(X_test.iloc[-1].values.reshape(1,-1))[0][1]
-    proba = round((proba), 2)
+    proba = round((proba), 4)
     # 조건 검사
     if proba >= 0.45:
         return True
@@ -162,7 +162,7 @@ async def chat_bot():
     bot_token = "5915962696:AAF14G7Kg-N2tk5i_w4JGYICqamwrUNXP1c" # 봇 토큰
     bot_chat_id = "5820794752" # 채팅 ID
     bot = Bot(token=bot_token)
-    message = "매수가 조회 : {}\n매도가 조회 : {}\n현재가 조회 : {}\n상승장 예측 : {} {}\n원화잔고 : {}\n비트코인잔고 : {}\n목표가 완화 : {}".format(target_price, sell_price, current_price, proba, bull_market, krw, btc, PriceEase*3)
+    message = "매수가 조회 : {}\n매도가 조회 : {}\n현재가 조회 : {}\n상승장 예측 : {}% {}\n원화잔고 : {}\n비트코인잔고 : {}\n목표가 완화 : {}".format(target_price, sell_price, current_price, proba*100, bull_market, krw, btc, PriceEase*3)
     await bot.send_message(chat_id=bot_chat_id, text=message)
     if bull_market==True:
         message = "45%이상으로 예측.\n★Autotrade start★"

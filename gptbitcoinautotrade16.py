@@ -97,9 +97,11 @@ def predict_target_price(target_type):
 
 def is_bull_market(ticker):
     global proba
-    df1 = pyupbit.get_ohlcv(ticker, interval="minute", count=183)
-    df2 = pyupbit.get_ohlcv(ticker, interval="minute", count=183, to=df1.index[0])
-    DF = pd.concat([df2, df1])
+    df1 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200)
+    df2 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200, to=df1.index[0])
+    df3 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200, to=df2.index[0])
+    df4 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200, to=df3.index[0])
+    DF = pd.concat([df4, df3, df2, df1])
     # 기술적 지표 추가
     DF['ma5'] = DF['close'].rolling(window=5).mean()
     DF['ma10'] = DF['close'].rolling(window=10).mean()

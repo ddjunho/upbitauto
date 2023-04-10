@@ -168,9 +168,7 @@ async def chat_bot():
     if bull_market==True:
         message = "45%이상으로 예측.\n★Autotrade start★"
         await bot.send_message(chat_id=bot_chat_id, text=message)
-asyncio.run(chat_bot())
-def chat():
-    asyncio.run(chat_bot())
+loop = asyncio.get_event_loop()
 print("autotrade start")
 # 스케줄러 실행
 while True:
@@ -186,7 +184,7 @@ while True:
             sell_price = predict_target_price(COIN, 'high')
             PriceEase = round((sell_price - target_price) * 0.1, 1)
             bull_market = is_bull_market(COIN)
-            chat()
+            loop.run_until_complete(chat_bot())
         # 매수 조건
         if current_price <= target_price + PriceEase*2:
             if bull_market==True and krw > 10000 and target_price + PriceEase*2 < sell_price-(PriceEase*3):

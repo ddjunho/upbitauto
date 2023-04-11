@@ -1,7 +1,6 @@
 import time
 import datetime
 import json
-import telebot
 import pyupbit
 import pandas as pd
 import numpy as np
@@ -15,6 +14,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from tensorflow.keras import regularizers
 from upbit_keys import access, secret
+from telebot import TeleBot
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.2  # 분할 매수 금액 단위 설정
 
@@ -172,7 +172,6 @@ print("autotrade start")
 # 스케줄러 실행
 while True:
     try:
-        bot.polling()
         schedule.run_pending()
         now = datetime.now()
         current_price = get_current_price(COIN)

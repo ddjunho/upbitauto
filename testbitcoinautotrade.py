@@ -167,18 +167,11 @@ print("autotrade start")
 # 스케줄러 실행
 while True:
     try:
-        schedule.run_pending()
         now = datetime.now()
         current_price = get_current_price(COIN)
-        if now.hour in [3, 9, 15, 21] and now.minute == 0:
-            if krw <= get_balance("KRW"):
-                krw = get_balance("KRW")
-                buy_amount = krw * 0.9995 * buy_unit
-            target_price = predict_target_price(COIN, 'low')
-            sell_price = predict_target_price(COIN, 'high')
-            PriceEase = round((sell_price - target_price) * 0.1, 1)
-            bull_market = is_bull_market(COIN)
+        if now.hour in [3, 9, 15, 21] :
             send_message()
+            time.sleep(3)
         # 매수 조건
         if current_price <= target_price + PriceEase*2:
             if bull_market==True and krw > 10000 and target_price + PriceEase*2 < sell_price-(PriceEase*3):

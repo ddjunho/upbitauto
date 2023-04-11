@@ -5,7 +5,7 @@ import pyupbit
 import pandas as pd
 import numpy as np
 import schedule
-import telegram
+import telepot
 import tensorflow as tf
 import requests.exceptions
 import simplejson.errors

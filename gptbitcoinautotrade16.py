@@ -1,7 +1,7 @@
 import time
 import datetime
 import json
-import asyncio
+import telebot
 import pyupbit
 import pandas as pd
 import numpy as np
@@ -15,7 +15,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from tensorflow.keras import regularizers
 from upbit_keys import access, secret
-from telegram import Bot
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.2  # 분할 매수 금액 단위 설정
 
@@ -158,20 +157,22 @@ last_buy_time = None
 time_since_last_buy = None
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 bull_market = is_bull_market(COIN)
-def send_message_with_code(target_price, sell_price, current_price, proba, bull_market, krw, btc, PriceEase):
-    bot_token = "5915962696:AAF14G7Kg-N2tk5i_w4JGYICqamwrUNXP1c" # 봇 토큰
-    bot_chat_id = "5820794752" # 채팅 ID
-    bot = Bot(token=bot_token)
-    message = "매수가 조회 : {}\n매도가 조회 : {}\n현재가 조회 : {}\n상승장 예측 : {}% {}\n원화잔고 : {}\n비트코인잔고 : {}\n목표가 완화 : {}".format(target_price, sell_price, current_price, proba*100, bull_market, krw, btc, PriceEase*3)
-    bot.send_message(chat_id=bot_chat_id, text=message)
-    if bull_market==True:
-        message = "45%이상으로 예측.\n★Autotrade start★"
-        bot.send_message(chat_id=bot_chat_id, text=message)
-send_message_with_code(target_price, sell_price, current_price, proba, bull_market, krw, btc, PriceEase)
+bot_token = "5915962696:AAF14G7Kg-N2tk5i_w4JGYICqamwrUNXP1c" # 봇 토큰
+bot_chat_id = "5820794752" # 채팅 ID
+bot = telebot.TeleBot(bot_token)
+@bot.message_handler(commands=['auto'])
+def send_auto(message):
+    message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n상승장 예측 : {proba*100}% {bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase*3}"
+    bot.send_message(bot_chat_id, message)
+@bot.message_handler(func=lambda message: True)
+def echo_all(message):
+    bot.send_message(bot_chat_id, message.text)
+polling()
 print("autotrade start")
 # 스케줄러 실행
 while True:
     try:
+        bot.polling()
         schedule.run_pending()
         now = datetime.now()
         current_price = get_current_price(COIN)
@@ -183,7 +184,6 @@ while True:
             sell_price = predict_target_price(COIN, 'high')
             PriceEase = round((sell_price - target_price) * 0.1, 1)
             bull_market = is_bull_market(COIN)
-            send_message_with_code(target_price, sell_price, current_price, proba, bull_market, krw, btc, PriceEase)
         # 매수 조건
         if current_price <= target_price + PriceEase*2:
             if bull_market==True and krw > 10000 and target_price + PriceEase*2 < sell_price-(PriceEase*3):

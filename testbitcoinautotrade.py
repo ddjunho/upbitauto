@@ -1,10 +1,11 @@
 import time
+import datetime
 import json
-import asyncio
 import pyupbit
 import pandas as pd
 import numpy as np
 import schedule
+import telegram
 import tensorflow as tf
 import requests.exceptions
 import simplejson.errors
@@ -14,7 +15,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from tensorflow.keras import regularizers
 from upbit_keys import access, secret
-from telegram import Bot
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.2  # 분할 매수 금액 단위 설정
 
@@ -73,22 +73,22 @@ def predict_target_price(target_type):
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
         tf.keras.layers.LSTM(128, input_shape=(data, 5)),
-        tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
-        tf.keras.layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
-        tf.keras.layers.Dense(16, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
-        tf.keras.layers.Dense(8, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
+        tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.02)),
+        tf.keras.layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.02)),
+        tf.keras.layers.Dense(16, activation='relu', kernel_regularizer=regularizers.l2(0.02)),
+        tf.keras.layers.Dense(8, activation='relu', kernel_regularizer=regularizers.l2(0.02)),
         tf.keras.layers.Dense(1)
     ])
     # 모델 컴파일
     model.compile(optimizer='adam', loss='mse', run_eagerly=True)
     # 학습
-    model.fit(X_train, y_train, epochs=1, verbose=1)
+    model.fit(X_train, y_train, epochs=100, verbose=1)
     # 새로운 데이터에 대한 예측
     last_data = DF[['open', 'high', 'low', 'close', 'volume']].iloc[-data:].values
     last_data_mean = last_data.mean(axis=0)
     last_data_std = last_data.std(axis=0)
     last_data = (last_data - last_data_mean) / last_data_std
-    # 예측할 데이터의 shape를 (1,549, 5)로 변경
+    # 예측할 데이터의 shape를 (1,799, 5)로 변경
     last_data = np.expand_dims(last_data, axis=0)
     predicted_price = model.predict(last_data)
     predicted_price = y_scaler.inverse_transform(predicted_price)
@@ -129,7 +129,7 @@ def is_bull_market(ticker):
     DF = DF.dropna()
     # 입력 데이터와 출력 데이터 분리
     X = DF[['open', 'high', 'low', 'close', 'volume', 'ma5', 'ma10', 'ma20', 'ma60', 'ma120', 'rsi', 'macd', 'macdsignal', 'macdhist']]
-    y = (DF['close'].shift(-360) > DF['close']).astype(int)
+    y = (DF['close'].shift(-36) > DF['close']).astype(int)
     # 학습 데이터와 검증 데이터 분리
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
     # 모델 구성
@@ -138,6 +138,7 @@ def is_bull_market(ticker):
     model.fit(X_train, y_train)
     # 예측 확률 계산
     proba = model.predict_proba(X_test.iloc[-1].values.reshape(1,-1))[0][1]
+    proba = round((proba), 4)
     # 조건 검사
     if proba >= 0.45:
         return True
@@ -150,23 +151,18 @@ target_price = predict_target_price("low")
 sell_price = predict_target_price("high")
 current_price = get_current_price(COIN)
 btc = get_balance("BTC")
-bull_market = is_bull_market(COIN)
 PriceEase=round((sell_price-target_price)*0.1, 1)
 multiplier = 1
 last_buy_time = None
 time_since_last_buy = None
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
-async def chat_bot():
-    # proba 값을 Telegram으로 전송
-    bot_token = "5915962696:AAF14G7Kg-N2tk5i_w4JGYICqamwrUNXP1c" # 봇 토큰
-    bot_chat_id = "5820794752" # 채팅 ID
-    bot = Bot(token=bot_token)
-    message = "매수가 조회 : {}\n매도가 조회 : {}\n현재가 조회 : {}\n상승장 예측 : {} {}\n원화잔고 : {}\n비트코인잔고 : {}\n목표가 완화 : {}".format(target_price, sell_price, current_price, proba, bull_market, krw, btc, PriceEase*3)
-    await bot.send_message(chat_id=bot_chat_id, text=message)
-    if bull_market==True:
-        message = "45%이상으로 예측.\n★Autotrade start★"
-        await bot.send_message(chat_id=bot_chat_id, text=message)
-asyncio.run(chat_bot())
+bull_market = is_bull_market(COIN)
+def send_message():
+    bot = telegram.Bot(token="5915962696:AAF14G7Kg-N2tk5i_w4JGYICqamwrUNXP1c")
+    chat_id = "5820794752"
+    message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n상승장 예측 : {proba*100}% {bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase*3}"
+    bot.sendMessage(chat_id=bot_chat_id, text=message)
+send_message()
 print("autotrade start")
 # 스케줄러 실행
 while True:
@@ -182,7 +178,7 @@ while True:
             sell_price = predict_target_price(COIN, 'high')
             PriceEase = round((sell_price - target_price) * 0.1, 1)
             bull_market = is_bull_market(COIN)
-            asyncio.run(chat_bot())
+            send_message()
         # 매수 조건
         if current_price <= target_price + PriceEase*2:
             if bull_market==True and krw > 10000 and target_price + PriceEase*2 < sell_price-(PriceEase*3):

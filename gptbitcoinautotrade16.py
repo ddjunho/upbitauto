@@ -157,10 +157,12 @@ last_buy_time = None
 time_since_last_buy = None
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 bull_market = is_bull_market(COIN)
-bot = telegram.Bot(token="5915962696:AAF14G7Kg-N2tk5i_w4JGYICqamwrUNXP1c")
-bot_chat_id = "5820794752" # 채팅 ID
-message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n상승장 예측 : {proba*100}% {bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase*3}"
-bot.sendMessage(chat_id=bot_chat_id, text=message)
+def send_message():
+    bot = telegram.Bot(token="5915962696:AAF14G7Kg-N2tk5i_w4JGYICqamwrUNXP1c")
+    chat_id = "5820794752"
+    message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n상승장 예측 : {proba*100}% {bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase*3}"
+    bot.sendMessage(chat_id=bot_chat_id, text=message)
+send_message()
 print("autotrade start")
 # 스케줄러 실행
 while True:
@@ -176,8 +178,7 @@ while True:
             sell_price = predict_target_price(COIN, 'high')
             PriceEase = round((sell_price - target_price) * 0.1, 1)
             bull_market = is_bull_market(COIN)
-            message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n상승장 예측 : {proba*100}% {bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase*3}"
-            bot.sendMessage(chat_id=bot_chat_id, text=message)
+            send_message()
         # 매수 조건
         if current_price <= target_price + PriceEase*2:
             if bull_market==True and krw > 10000 and target_price + PriceEase*2 < sell_price-(PriceEase*3):

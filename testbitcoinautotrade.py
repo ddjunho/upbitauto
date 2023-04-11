@@ -158,7 +158,7 @@ time_since_last_buy = None
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 bull_market = is_bull_market(COIN)
 def send_message():
-    bot = telegram.Bot(token="5915962696:AAF14G7Kg-N2tk5i_w4JGYICqamwrUNXP1c")
+    bot = telegram.Bot(token="6296102104:AAFC4ddbh7gSgkGOdysFqEBUkIoWXw0-g5A")
     chat_id = "5820794752"
     message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n상승장 예측 : {proba*100}% {bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase*3}"
     bot.sendMessage(chat_id=chat_id, text=message)

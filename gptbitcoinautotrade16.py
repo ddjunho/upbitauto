@@ -179,6 +179,7 @@ while True:
             PriceEase = round((sell_price - target_price) * 0.1, 1)
             bull_market = is_bull_market(COIN)
             send_message()
+            time.sleep(30)
         # 매수 조건
         if current_price <= target_price + PriceEase*2:
             if bull_market==True and krw > 10000 and target_price + PriceEase*2 < sell_price-(PriceEase*3):

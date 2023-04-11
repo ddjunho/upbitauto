@@ -168,6 +168,7 @@ def chat_bot():
     if bull_market==True:
         message = "45%이상으로 예측.\n★Autotrade start★"
         bot.send_message(chat_id=bot_chat_id, text=message)
+chat_bot()
 print("autotrade start")
 # 스케줄러 실행
 while True:

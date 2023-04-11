@@ -158,17 +158,16 @@ last_buy_time = None
 time_since_last_buy = None
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 bull_market = is_bull_market(COIN)
-async def chat_bot():
+def chat_bot():
     # proba 값을 Telegram으로 전송
     bot_token = "5915962696:AAF14G7Kg-N2tk5i_w4JGYICqamwrUNXP1c" # 봇 토큰
     bot_chat_id = "5820794752" # 채팅 ID
     bot = Bot(token=bot_token)
     message = "매수가 조회 : {}\n매도가 조회 : {}\n현재가 조회 : {}\n상승장 예측 : {}% {}\n원화잔고 : {}\n비트코인잔고 : {}\n목표가 완화 : {}".format(target_price, sell_price, current_price, proba*100, bull_market, krw, btc, PriceEase*3)
-    await bot.send_message(chat_id=bot_chat_id, text=message)
+    bot.send_message(chat_id=bot_chat_id, text=message)
     if bull_market==True:
         message = "45%이상으로 예측.\n★Autotrade start★"
-        await bot.send_message(chat_id=bot_chat_id, text=message)
-loop = asyncio.get_event_loop()
+        bot.send_message(chat_id=bot_chat_id, text=message)
 print("autotrade start")
 # 스케줄러 실행
 while True:
@@ -184,7 +183,7 @@ while True:
             sell_price = predict_target_price(COIN, 'high')
             PriceEase = round((sell_price - target_price) * 0.1, 1)
             bull_market = is_bull_market(COIN)
-            loop.run_until_complete(chat_bot())
+            chat_bot()
         # 매수 조건
         if current_price <= target_price + PriceEase*2:
             if bull_market==True and krw > 10000 and target_price + PriceEase*2 < sell_price-(PriceEase*3):

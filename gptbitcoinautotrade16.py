@@ -48,10 +48,10 @@ def predict_target_price(target_type):
     ticker = input_data['arguments']['ticker']
     target_type = input_data['arguments']['target_type']
     # 데이터 불러오기
-    df1 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200)
-    df2 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200, to=df1.index[0])
-    df3 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200, to=df2.index[0])
-    df4 = pyupbit.get_ohlcv(ticker, interval="minute360", count=200, to=df3.index[0])
+    df1 = pyupbit.get_ohlcv(ticker, interval="minute180", count=200)
+    df2 = pyupbit.get_ohlcv(ticker, interval="minute180", count=200, to=df1.index[0])
+    df3 = pyupbit.get_ohlcv(ticker, interval="minute180", count=200, to=df2.index[0])
+    df4 = pyupbit.get_ohlcv(ticker, interval="minute180", count=200, to=df3.index[0])
     DF = pd.concat([df4, df3, df2, df1])
     # 입력 데이터 전처리
     X = DF[['open', 'high', 'low', 'close', 'volume']].values
@@ -129,7 +129,7 @@ def is_bull_market(ticker):
     DF = DF.dropna()
     # 입력 데이터와 출력 데이터 분리
     X = DF[['open', 'high', 'low', 'close', 'volume', 'ma5', 'ma10', 'ma20', 'ma60', 'ma120', 'rsi', 'macd', 'macdsignal', 'macdhist']]
-    y = (DF['close'].shift(-36) > DF['close']).astype(int)
+    y = (DF['close'].shift(-18) > DF['close']).astype(int)
     # 학습 데이터와 검증 데이터 분리
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
     # 모델 구성
@@ -160,7 +160,7 @@ bull_market = is_bull_market(COIN)
 def send_message():
     bot = telepot.Bot(token="6296102104:AAFC4ddbh7gSgkGOdysFqEBUkIoWXw0-g5A")
     chat_id = "5820794752"
-    message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n상승장 예측 : {proba*100}% {bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase*3}"
+    message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n상승장 예측 : {proba*100}% {bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase}"
     bot.sendMessage(chat_id, message)
 send_message()
 print("autotrade start")
@@ -170,7 +170,7 @@ while True:
         schedule.run_pending()
         now = datetime.now()
         current_price = get_current_price(COIN)
-        if now.hour in [3, 9, 15, 21] and now.minute == 0:
+        if now.hour in [3, 6, 9, 12, 15, 18, 21] and now.minute == 0:
             if krw <= get_balance("KRW"):
                 krw = get_balance("KRW")
                 buy_amount = krw * 0.9995 * buy_unit
@@ -181,8 +181,8 @@ while True:
             send_message()
             time.sleep(30)
         # 매수 조건
-        if current_price <= target_price + PriceEase*2:
-            if bull_market==True and krw > 10000 and target_price + PriceEase*2 < sell_price-(PriceEase*3):
+        if current_price <= target_price + PriceEase:
+            if bull_market==True and krw > 10000 and target_price + PriceEase < sell_price-(PriceEase*3):
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995
                 upbit.buy_market_order(COIN, buy_amount)

@@ -170,7 +170,7 @@ while True:
         schedule.run_pending()
         now = datetime.now()
         current_price = get_current_price(COIN)
-        if now.hour in [3, 6, 9, 12, 15, 18, 21] and now.minute == 0:
+        if now.hour % 3 == 0 and now.minute == 0:
             if krw <= get_balance("KRW"):
                 krw = get_balance("KRW")
                 buy_amount = krw * 0.9995 * buy_unit
@@ -180,7 +180,6 @@ while True:
             bull_market = is_bull_market(COIN)
             message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n상승장 예측 : {proba*100}% {bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase}"
             send_message(message)
-            time.sleep(30)
         # 매수 조건
         if current_price <= target_price + PriceEase:
             if bull_market==True and krw > 10000 and target_price + PriceEase < sell_price-(PriceEase*3):

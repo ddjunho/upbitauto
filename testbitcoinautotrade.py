@@ -136,7 +136,8 @@ def is_bull_market(ticker):
     X_train, X_test, y_train_3h, y_test_3h = train_test_split(X, y_3h, test_size=0.2, shuffle=False)
     _, _, y_train_6h, y_test_6h = train_test_split(X, y_6h, test_size=0.2, shuffle=False)
     # 모델 구성
-    model = RandomForestClassifier(n_estimators=100, max_depth=5)
+    model_3h = RandomForestClassifier(n_estimators=100, max_depth=5)
+    model_6h = RandomForestClassifier(n_estimators=100, max_depth=5)
     # 학습
     model_3h.fit(X_train, y_train_3h)
     model_6h.fit(X_train, y_train_6h)

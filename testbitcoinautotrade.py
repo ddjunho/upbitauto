@@ -152,17 +152,6 @@ def is_bull_market(ticker):
         return False
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
-krw = get_balance("KRW")
-target_price = predict_target_price("low")
-sell_price = predict_target_price("high")
-current_price = get_current_price(COIN)
-btc = get_balance("BTC")
-PriceEase=round((sell_price-target_price)*0.1, 1)
-multiplier = 1
-last_buy_time = None
-time_since_last_buy = None
-buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
-bull_market = is_bull_market(COIN)
 def send_message(message):
     bot = telepot.Bot(token="6296102104:AAFC4ddbh7gSgkGOdysFqEBUkIoWXw0-g5A")
     chat_id = "5820794752"
@@ -170,6 +159,17 @@ def send_message(message):
 print("autotrade start")
 # 스케줄러 실행
 def job():
+    krw = get_balance("KRW")
+    target_price = predict_target_price("low")
+    sell_price = predict_target_price("high")
+    current_price = get_current_price(COIN)
+    btc = get_balance("BTC")
+    PriceEase=round((sell_price-target_price)*0.1, 1)
+    multiplier = 1
+    last_buy_time = None
+    time_since_last_buy = None
+    buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
+    bull_market = is_bull_market(COIN)
     while True:
         try:
             now = datetime.now()

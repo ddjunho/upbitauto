@@ -73,10 +73,10 @@ def predict_target_price(target_type):
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
         tf.keras.layers.LSTM(128, input_shape=(data, 5)),
-        tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.02)),
-        tf.keras.layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.02)),
-        tf.keras.layers.Dense(16, activation='relu', kernel_regularizer=regularizers.l2(0.02)),
-        tf.keras.layers.Dense(8, activation='relu', kernel_regularizer=regularizers.l2(0.02)),
+        tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
+        tf.keras.layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
+        tf.keras.layers.Dense(16, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
+        tf.keras.layers.Dense(8, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
         tf.keras.layers.Dense(1)
     ])
     # 모델 컴파일
@@ -98,10 +98,10 @@ def predict_target_price(target_type):
 def is_bull_market(ticker):
     global proba_3h
     global proba_6h 
-    df1 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200)
-    df2 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200, to=df1.index[0])
-    df3 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200, to=df2.index[0])
-    df4 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200, to=df3.index[0])
+    df1 = pyupbit.get_ohlcv(ticker, interval="minute180", count=200)
+    df2 = pyupbit.get_ohlcv(ticker, interval="minute180", count=200, to=df1.index[0])
+    df3 = pyupbit.get_ohlcv(ticker, interval="minute180", count=200, to=df2.index[0])
+    df4 = pyupbit.get_ohlcv(ticker, interval="minute180", count=200, to=df3.index[0])
     DF = pd.concat([df4, df3, df2, df1])
     # 기술적 지표 추가
     DF['ma5'] = DF['close'].rolling(window=5).mean()
@@ -130,8 +130,8 @@ def is_bull_market(ticker):
     DF = DF.dropna()
     # 입력 데이터와 출력 데이터 분리
     X = DF[['open', 'high', 'low', 'close', 'volume', 'ma5', 'ma10', 'ma20', 'ma60', 'ma120', 'rsi', 'macd', 'macdsignal', 'macdhist']]
-    y_3h = (DF['close'].shift(-18) > DF['close']).astype(int) # 3시간 뒤의 상승장 예측
-    y_6h = (DF['close'].shift(-36) > DF['close']).astype(int) # 6시간 뒤의 상승장 예측
+    y_3h = (DF['close'].shift(-1) > DF['close']).astype(int) # 3시간 뒤의 상승장 예측
+    y_6h = (DF['close'].shift(-2) > DF['close']).astype(int) # 6시간 뒤의 상승장 예측
     # 학습 데이터와 검증 데이터 분리
     X_train, X_test, y_train_3h, y_test_3h = train_test_split(X, y_3h, test_size=0.2, shuffle=False)
     _, _, y_train_6h, y_test_6h = train_test_split(X, y_6h, test_size=0.2, shuffle=False)
@@ -163,55 +163,61 @@ last_buy_time = None
 time_since_last_buy = None
 buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
 bull_market = is_bull_market(COIN)
-def send_message():
+def send_message(message):
     bot = telepot.Bot(token="6296102104:AAFC4ddbh7gSgkGOdysFqEBUkIoWXw0-g5A")
     chat_id = "5820794752"
-    message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n3시간뒤 상승 예측 : {proba_3h*100}%\n6시간뒤 상승 예측 : {proba_6h*100}%{bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase}"
     bot.sendMessage(chat_id, message)
-send_message()
 print("autotrade start")
-def job():
-    if krw <= get_balance("KRW"):
-        krw = get_balance("KRW")
-        buy_amount = krw * 0.9995 * buy_unit
-    target_price = predict_target_price("low")
-    sell_price = predict_target_price("high")
-    PriceEase = round((sell_price - target_price) * 0.1, 1)
-    bull_market = is_bull_market(COIN)
-    send_message()
-schedule.every(3).hours.at(":00").do(job)
 # 스케줄러 실행
+def job():
+    while True:
+        try:
+            now = datetime.now()
+            current_price = get_current_price(COIN)
+            if now.hour % 3 == 0 and now.minute == 0:
+                if krw <= get_balance("KRW"):
+                    krw = get_balance("KRW")
+                    buy_amount = krw * 0.9995 * buy_unit
+                target_price = predict_target_price("low")
+                sell_price = predict_target_price("high")
+                PriceEase = round((sell_price - target_price) * 0.1, 1)
+                bull_market = is_bull_market(COIN)
+                message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n3시간뒤 상승 예측 : {proba_3h*100}%\n6시간뒤 상승 예측 : {proba_6h*100}%{bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase}"
+                send_message(message)
+            # 매수 조건
+            if current_price <= target_price + PriceEase:
+                krw = get_balance("KRW")
+                if bull_market==True and krw > 10000 and target_price + PriceEase < sell_price-(PriceEase*3):
+                    if get_balance("KRW") < krw * buy_unit:
+                        buy_amount = krw * 0.9995
+                    upbit.buy_market_order(COIN, buy_amount)
+                    last_buy_time = now
+                    multiplier = 1
+                    print(now, "매수")
+            # 매도 조건
+            else:
+                if current_price >= sell_price-(PriceEase*multiplier):
+                    btc = get_balance("BTC")
+                    if btc > 0.00008 and btc is not None:
+                        upbit.sell_market_order(COIN, btc*0.9995)
+                        print(now, "매도")
+            # PriceEase 증가 조건
+            if last_buy_time is not None:
+                time_since_last_buy = now - last_buy_time
+                if time_since_last_buy.total_seconds() >= 3600: # 1시간마다
+                    multiplier += 1
+                    if multiplier>5:
+                        multiplier=5
+                        last_buy_time = None
+                    last_buy_time = now
+            time.sleep(1)
+        except Exception as e:
+            print(e)
+            time.sleep(1)
+schedule.every(1).seconds.do(job)
 while True:
     try:
         schedule.run_pending()
-        now = datetime.now()
-        current_price = get_current_price(COIN)
-        # 매수 조건
-        if current_price <= target_price + PriceEase:
-            krw = get_balance("KRW")
-            if bull_market==True and krw > 10000 and target_price + PriceEase < sell_price-(PriceEase*3):
-                if get_balance("KRW") < krw * buy_unit:
-                    buy_amount = krw * 0.9995
-                upbit.buy_market_order(COIN, buy_amount)
-                last_buy_time = datetime.now()
-                multiplier = 1
-                print(now, "매수")
-        # 매도 조건
-        else:
-            if current_price >= sell_price-(PriceEase*multiplier):
-                btc = get_balance("BTC")
-                if btc > 0.00008 and btc is not None:
-                    upbit.sell_market_order(COIN, btc)
-                    print(now, "매도")
-        # PriceEase 증가 조건
-        if last_buy_time is not None:
-            time_since_last_buy = now - last_buy_time
-            if time_since_last_buy.total_seconds() >= 3600: # 1시간마다
-                multiplier += 1
-                if multiplier>3:
-                    multiplier=4
-                    last_buy_time = None
-                last_buy_time = now
         time.sleep(1)
     except Exception as e:
         print(e)

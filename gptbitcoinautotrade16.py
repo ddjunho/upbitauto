@@ -96,7 +96,8 @@ def predict_target_price(target_type):
     return float(predicted_price)
 
 def is_bull_market(ticker):
-    global proba
+    global proba_3h
+    global proba_6h 
     df1 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200)
     df2 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200, to=df1.index[0])
     df3 = pyupbit.get_ohlcv(ticker, interval="minute10", count=200, to=df2.index[0])
@@ -129,18 +130,23 @@ def is_bull_market(ticker):
     DF = DF.dropna()
     # 입력 데이터와 출력 데이터 분리
     X = DF[['open', 'high', 'low', 'close', 'volume', 'ma5', 'ma10', 'ma20', 'ma60', 'ma120', 'rsi', 'macd', 'macdsignal', 'macdhist']]
-    y = (DF['close'].shift(-18) > DF['close']).astype(int)
+    y_3h = (DF['close'].shift(-18) > DF['close']).astype(int) # 3시간 뒤의 상승장 예측
+    y_6h = (DF['close'].shift(-36) > DF['close']).astype(int) # 6시간 뒤의 상승장 예측
     # 학습 데이터와 검증 데이터 분리
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+    X_train, X_test, y_train_3h, y_test_3h = train_test_split(X, y_3h, test_size=0.2, shuffle=False)
+    _, _, y_train_6h, y_test_6h = train_test_split(X, y_6h, test_size=0.2, shuffle=False)
     # 모델 구성
-    model = RandomForestClassifier(n_estimators=100, max_depth=5)
+    model_3h = RandomForestClassifier(n_estimators=100, max_depth=5)
+    model_6h = RandomForestClassifier(n_estimators=100, max_depth=5)
     # 학습
-    model.fit(X_train, y_train)
+    model_3h.fit(X_train, y_train_3h)
+    model_6h.fit(X_train, y_train_6h)
     # 예측 확률 계산
-    proba = model.predict_proba(X_test.iloc[-1].values.reshape(1,-1))[0][1]
-    proba = round((proba), 4)
-    # 조건 검사
-    if proba >= 0.45:
+    proba_3h = model_3h.predict_proba(X_test.iloc[-1].values.reshape(1,-1))[0][1]
+    proba_6h = model_6h.predict_proba(X_test.iloc[-1].values.reshape(1,-1))[0][1]
+    proba_3h = round(proba_3h, 2)
+    proba_6h = round(proba_6h, 2)
+    if proba_3h >= 0.45 and proba_6h >= 0.45:
         return True
     else:
         return False
@@ -161,24 +167,23 @@ def send_message(message):
     bot = telepot.Bot(token="6296102104:AAFC4ddbh7gSgkGOdysFqEBUkIoWXw0-g5A")
     chat_id = "5820794752"
     bot.sendMessage(chat_id, message)
-message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n상승장 예측 : {proba*100}% {bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase}"
+message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n3시간뒤 상승 예측 : {proba_3h*100}%\n6시간뒤 상승 예측 : {proba_6h*100}%{bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase}"
 send_message(message)
 print("autotrade start")
 # 스케줄러 실행
 while True:
     try:
-        schedule.run_pending()
         now = datetime.now()
         current_price = get_current_price(COIN)
         if now.hour % 3 == 0 and now.minute == 0:
             if krw <= get_balance("KRW"):
                 krw = get_balance("KRW")
                 buy_amount = krw * 0.9995 * buy_unit
-            target_price = predict_target_price(COIN, 'low')
-            sell_price = predict_target_price(COIN, 'high')
+            target_price = predict_target_price("low")
+            sell_price = predict_target_price("high")
             PriceEase = round((sell_price - target_price) * 0.1, 1)
             bull_market = is_bull_market(COIN)
-            message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n상승장 예측 : {proba*100}% {bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase}"
+            message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n3시간뒤 상승 예측 : {proba_3h*100}%\n6시간뒤 상승 예측 : {proba_6h*100}%{bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase}"
             send_message(message)
         # 매수 조건
         if current_price <= target_price + PriceEase:

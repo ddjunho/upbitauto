@@ -167,8 +167,6 @@ def send_message(message):
     bot = telepot.Bot(token="6296102104:AAFC4ddbh7gSgkGOdysFqEBUkIoWXw0-g5A")
     chat_id = "5820794752"
     bot.sendMessage(chat_id, message)
-message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n3시간뒤 상승 예측 : {proba_3h*100}%\n6시간뒤 상승 예측 : {proba_6h*100}%{bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase}"
-send_message(message)
 print("autotrade start")
 # 스케줄러 실행
 def job():

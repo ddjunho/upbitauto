@@ -187,6 +187,7 @@ while True:
             send_message(message)
         # 매수 조건
         if current_price <= target_price + PriceEase:
+            krw = get_balance("KRW")
             if bull_market==True and krw > 10000 and target_price + PriceEase < sell_price-(PriceEase*3):
                 if get_balance("KRW") < krw * buy_unit:
                     buy_amount = krw * 0.9995

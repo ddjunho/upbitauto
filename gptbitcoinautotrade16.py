@@ -149,7 +149,7 @@ def is_bull_market(ticker):
     if proba_3h >= 0.55 and proba_6h >= 0.55:
         return False
     else:
-        return False
+        return True
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 krw = get_balance("KRW")

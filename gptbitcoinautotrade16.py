@@ -73,10 +73,10 @@ def predict_target_price(target_type):
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
         tf.keras.layers.LSTM(128, input_shape=(data, 5)),
-        tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
-        tf.keras.layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
-        tf.keras.layers.Dense(16, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
-        tf.keras.layers.Dense(8, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
+        tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
+        tf.keras.layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
+        tf.keras.layers.Dense(16, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
+        tf.keras.layers.Dense(8, activation='relu', kernel_regularizer=regularizers.l2(0.01)),
         tf.keras.layers.Dense(1)
     ])
     # 모델 컴파일
@@ -130,14 +130,14 @@ def is_bull_market(ticker):
     DF = DF.dropna()
     # 입력 데이터와 출력 데이터 분리
     X = DF[['open', 'high', 'low', 'close', 'volume', 'ma5', 'ma10', 'ma20', 'ma60', 'ma120', 'rsi', 'macd', 'macdsignal', 'macdhist']]
-    y_3h = (DF['close'].shift(-18) > DF['close']).astype(int) # 3시간 뒤의 상승장 예측
-    y_6h = (DF['close'].shift(-36) > DF['close']).astype(int) # 6시간 뒤의 상승장 예측
+    y_3h = (DF['close'].shift(-18) < DF['close']).astype(int) # 3시간 뒤의 하락장 예측
+    y_6h = (DF['close'].shift(-36) < DF['close']).astype(int) # 6시간 뒤의 하락장 예측
     # 학습 데이터와 검증 데이터 분리
     X_train, X_test, y_train_3h, y_test_3h = train_test_split(X, y_3h, test_size=0.2, shuffle=False)
     _, _, y_train_6h, y_test_6h = train_test_split(X, y_6h, test_size=0.2, shuffle=False)
     # 모델 구성
-    model_3h = RandomForestClassifier(n_estimators=100, max_depth=10)
-    model_6h = RandomForestClassifier(n_estimators=100, max_depth=10)
+    model_3h = RandomForestClassifier(n_estimators=100, max_depth=5)
+    model_6h = RandomForestClassifier(n_estimators=100, max_depth=5)
     # 학습
     model_3h.fit(X_train, y_train_3h)
     model_6h.fit(X_train, y_train_6h)
@@ -146,7 +146,7 @@ def is_bull_market(ticker):
     proba_6h = model_6h.predict_proba(X_test.iloc[-1].values.reshape(1,-1))[0][1]
     proba_3h = round(proba_3h, 2)
     proba_6h = round(proba_6h, 2)
-    if proba_3h >= 0.45 and proba_6h >= 0.45:
+    if proba_3h >= 0.55 and proba_6h >= 0.55:
         return False
     else:
         return False
@@ -167,7 +167,7 @@ def send_message(message):
     bot = telepot.Bot(token="6296102104:AAFC4ddbh7gSgkGOdysFqEBUkIoWXw0-g5A")
     chat_id = "5820794752"
     bot.sendMessage(chat_id, message)
-message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n3시간뒤 상승 예측 : {proba_3h*100}%\n6시간뒤 상승 예측 : {proba_6h*100}%{bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase}"
+message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n3시간뒤 상승 예측 : {(1-proba_3h)*100}%\n6시간뒤 상승 예측 : {(1-proba_6h)*100}%{bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase}"
 send_message(message)
 print("autotrade start")
 # 스케줄러 실행

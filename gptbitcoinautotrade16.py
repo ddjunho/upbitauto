@@ -156,7 +156,6 @@ def send_message(message):
     bot = telepot.Bot(token="6296102104:AAFC4ddbh7gSgkGOdysFqEBUkIoWXw0-g5A")
     chat_id = "5820794752"
     bot.sendMessage(chat_id, message)
-print("autotrade start")
 # 스케줄러 실행
 def job():
     krw = get_balance("KRW")
@@ -170,6 +169,8 @@ def job():
     time_since_last_buy = None
     buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
     bull_market = is_bull_market(COIN)
+    message = "autotrade start"
+    send_message(message)
     while True:
         try:
             now = datetime.now()

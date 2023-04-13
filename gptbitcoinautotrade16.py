@@ -216,7 +216,7 @@ def job():
         except Exception as e:
             print(e)
             time.sleep(1)
-schedule.every(10).minutes.do(job)
+schedule.every(1).seconds.do(job)
 while True:
     try:
         schedule.run_pending()

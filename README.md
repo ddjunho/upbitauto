@@ -1,5 +1,5 @@
 # upbitauto
-
+nohup python3 gptbitcoinautotrade.py > output.log &
 nohup python3 gptbitcoinautotrade.py > output.log 2>&1 &
 
 백그라운드 실행시 표준 오류 출력을 표준 출력을 모두 지정된 파일로 리디렉션

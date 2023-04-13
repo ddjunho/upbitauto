@@ -130,8 +130,8 @@ def is_bull_market(ticker):
     DF = DF.dropna()
     # 입력 데이터와 출력 데이터 분리
     X = DF[['open', 'high', 'low', 'close', 'volume', 'ma5', 'ma10', 'ma20', 'ma60', 'ma120', 'rsi', 'macd', 'macdsignal', 'macdhist']]
-    y_3h = (DF['close'].shift(-1) < DF['close']).astype(int) # 3시간 뒤의 하락장 예측
-    y_6h = (DF['close'].shift(-2) < DF['close']).astype(int) # 6시간 뒤의 하락장 예측
+    y_3h = (DF['close'].shift(-1) > DF['close']).astype(int) # 3시간 뒤의 상승장 예측
+    y_6h = (DF['close'].shift(-2) > DF['close']).astype(int) # 6시간 뒤의 상승장 예측
     # 학습 데이터와 검증 데이터 분리
     X_train, X_test, y_train_3h, y_test_3h = train_test_split(X, y_3h, test_size=0.2, shuffle=False)
     _, _, y_train_6h, y_test_6h = train_test_split(X, y_6h, test_size=0.2, shuffle=False)
@@ -146,10 +146,10 @@ def is_bull_market(ticker):
     proba_6h = model_6h.predict_proba(X_test.iloc[-1].values.reshape(1,-1))[0][1]
     proba_3h = round(proba_3h, 2)
     proba_6h = round(proba_6h, 2)
-    if proba_3h >= 0.55 and proba_6h >= 0.55:
-        return False
-    else:
+    if proba_3h >= 0.45 and proba_6h >= 0.45:
         return True
+    else:
+        return False
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 krw = get_balance("KRW")

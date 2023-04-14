@@ -159,23 +159,17 @@ def send_message(message):
 # 스케줄러 실행
 def job():
     krw = get_balance("KRW")
-    target_price = predict_target_price("low")
-    sell_price = predict_target_price("high")
-    current_price = get_current_price(COIN)
     btc = get_balance("BTC")
-    PriceEase=round((sell_price-target_price)*0.1, 1)
     multiplier = 1
     last_buy_time = None
     time_since_last_buy = None
     buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
-    bull_market = is_bull_market(COIN)
-    message = "autotrade start"
-    send_message(message)
+    start = True
     while True:
         try:
             now = datetime.now()
             current_price = get_current_price(COIN)
-            if now.hour % 3 == 0 and now.minute == 0:
+            if now.hour % 3 == 0 and now.minute == 0 or start == True:
                 if krw <= get_balance("KRW"):
                     krw = get_balance("KRW")
                     buy_amount = krw * 0.9995 * buy_unit
@@ -185,6 +179,7 @@ def job():
                 bull_market = is_bull_market(COIN)
                 message = f"매수가 조회 : {target_price}\n매도가 조회 : {sell_price}\n현재가 조회 : {current_price}\n3시간뒤 크거나 같을 확률  예측 : {proba_3h*100}%\n6시간뒤 크거나 같을 확률 예측 : {proba_6h*100}%{bull_market}\n원화잔고 : {krw}\n비트코인잔고 : {btc}\n목표가 완화 : {PriceEase}"
                 send_message(message)
+                start = False
             # 매수 조건
             if current_price <= target_price + PriceEase:
                 krw = get_balance("KRW")

@@ -98,10 +98,10 @@ def predict_target_price(target_type):
 def is_bull_market(ticker):
     global proba_3h
     global proba_6h 
-    df1 = pyupbit.get_ohlcv(ticker, interval="minute180", count=200)
-    df2 = pyupbit.get_ohlcv(ticker, interval="minute180", count=200, to=df1.index[0])
-    df3 = pyupbit.get_ohlcv(ticker, interval="minute180", count=200, to=df2.index[0])
-    df4 = pyupbit.get_ohlcv(ticker, interval="minute180", count=200, to=df3.index[0])
+    df1 = pyupbit.get_ohlcv(ticker, interval="minute60", count=200)
+    df2 = pyupbit.get_ohlcv(ticker, interval="minute60", count=200, to=df1.index[0])
+    df3 = pyupbit.get_ohlcv(ticker, interval="minute60", count=200, to=df2.index[0])
+    df4 = pyupbit.get_ohlcv(ticker, interval="minute60", count=200, to=df3.index[0])
     DF = pd.concat([df4, df3, df2, df1])
     # 기술적 지표 추가
     DF['ma5'] = DF['close'].rolling(window=5).mean()
@@ -130,8 +130,8 @@ def is_bull_market(ticker):
     DF = DF.dropna()
     # 입력 데이터와 출력 데이터 분리
     X = DF[['open', 'high', 'low', 'close', 'volume', 'ma5', 'ma10', 'ma20', 'ma60', 'ma120', 'rsi', 'macd', 'macdsignal', 'macdhist']]
-    y_3h = (DF['close'].shift(-1) >= DF['close']).astype(int) # 3시간 뒤의 가격이 크거나 같을 확률 예측
-    y_6h = (DF['close'].shift(-2) >= DF['close']).astype(int) # 6시간 뒤의 가격이 크거나 같을 확률 예측
+    y_3h = (DF['close'].shift(-3) >= DF['close']).astype(int) # 3시간 뒤의 가격이 크거나 같을 확률 예측
+    y_6h = (DF['close'].shift(-6) >= DF['close']).astype(int) # 6시간 뒤의 가격이 크거나 같을 확률 예측
     # 학습 데이터와 검증 데이터 분리
     X_train, X_test, y_train_3h, y_test_3h = train_test_split(X, y_3h, test_size=0.2, shuffle=False)
     _, _, y_train_6h, y_test_6h = train_test_split(X, y_6h, test_size=0.2, shuffle=False)

@@ -73,10 +73,10 @@ def predict_target_price(target_type):
     # Tensorflow 모델 구성
     model = tf.keras.models.Sequential([
         tf.keras.layers.LSTM(128, input_shape=(data, 5)),
-        tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.05)),
-        tf.keras.layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.05)),
-        tf.keras.layers.Dense(16, activation='relu', kernel_regularizer=regularizers.l2(0.05)),
-        tf.keras.layers.Dense(8, activation='relu', kernel_regularizer=regularizers.l2(0.05)),
+        tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.005)),
+        tf.keras.layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.005)),
+        tf.keras.layers.Dense(16, activation='relu', kernel_regularizer=regularizers.l2(0.005)),
+        tf.keras.layers.Dense(8, activation='relu', kernel_regularizer=regularizers.l2(0.005)),
         tf.keras.layers.Dense(1)
     ])
     # 모델 컴파일

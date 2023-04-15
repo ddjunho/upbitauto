@@ -138,7 +138,7 @@ def is_bull_market(ticker, time):
     model.fit(X_train, y_train)
     # 예측 확률 계산
     proba = model.predict_proba(X_test.iloc[-1].values.reshape(1,-1))[0][1]
-    proba = round(proba, 2)
+    proba = round(proba, 4)
     return proba
 # 로그인
 upbit = pyupbit.Upbit(access, secret)

@@ -132,7 +132,7 @@ def is_bull_market(ticker, time):
     # 학습 데이터와 검증 데이터 분리
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
     # 모델 구성
-    model = RandomForestClassifier(n_estimators=100, max_depth=5)
+    model = RandomForestClassifier(n_estimators=100)
     # 학습
     model.fit(X_train, y_train)
     # 예측 확률 계산

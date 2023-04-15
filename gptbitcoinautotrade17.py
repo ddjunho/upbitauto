@@ -15,6 +15,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from tensorflow.keras import regularizers
 from upbit_keys import access, secret
+from telepot.loop import MessageLoop
 tf.config.run_functions_eagerly(True)
 buy_unit = 0.2  # 분할 매수 금액 단위 설정
 

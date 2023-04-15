@@ -143,8 +143,10 @@ def is_bull_market(ticker, time):
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 stop = False
+isForceStart = False
 def handle(msg):
     global stop
+    global isForceStart
     content_type, chat_type, chat_id = telepot.glance(msg)
     if content_type == 'text':
         if msg['text'] == '/start':
@@ -153,6 +155,14 @@ def handle(msg):
         elif msg['text'] == '/stop':
             bot.sendMessage(chat_id, 'Stopping...')
             stop = True
+        elif msg['text'] == '/isForceStart':
+            bot.sendMessage(chat_id, '일부 매매조건을 무시하고 매매합니다...')
+            isForceStart = True
+        elif msg['text'] == '/isNormalStart':
+            bot.sendMessage(chat_id, '일부 매매조건을 무시하지않고 매매합니다....')
+            isForceStart = False
+        elif msg['text'] == '/help':
+            bot.sendMessage(chat_id, 'start - 시작\nstop - 중지\nisForceStart - 일부 매매조건을 무시하고 매매합니다.\nisNormalStart - 일부 매매조건을 무시하지 않고 매매합니다.')
 MessageLoop(bot, handle).run_as_thread()
 def send_message(message):
     chat_id = "5820794752"
@@ -192,13 +202,14 @@ def job():
             # 매수 조건
             if current_price <= target_price + PriceEase:
                 krw = get_balance("KRW")
-                if bull_market==True and krw > 10000 and target_price + PriceEase < sell_price-(PriceEase*3):
-                    if get_balance("KRW") < krw * buy_unit:
-                        buy_amount = krw * 0.9995
-                    upbit.buy_market_order(COIN, buy_amount)
-                    last_buy_time = now
-                    multiplier = 1
-                    print(now, "매수")
+                if bull_market==True or isForceStart==True:
+                    if krw > 10000 and target_price + PriceEase < sell_price-(PriceEase*3):
+                        if get_balance("KRW") < krw * buy_unit:
+                            buy_amount = krw * 0.9995
+                        upbit.buy_market_order(COIN, buy_amount)
+                        last_buy_time = now
+                        multiplier = 1
+                        print(now, "매수")
             # 매도 조건
             else:
                 if current_price >= sell_price-(PriceEase*multiplier):

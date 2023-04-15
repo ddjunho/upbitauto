@@ -136,7 +136,7 @@ def is_bull_market(ticker, time):
     # 학습
     model.fit(X_train, y_train)
     # 예측 확률 계산
-    proba = model_3h.predict_proba(X_test.iloc[-1].values.reshape(1,-1))[0][1]
+    proba = model.predict_proba(X_test.iloc[-1].values.reshape(1,-1))[0][1]
     proba = round(proba, 2)
     return proba
 # 로그인
@@ -152,6 +152,7 @@ def handle(msg):
         elif msg['text'] == '/stop':
             bot.sendMessage(chat_id, 'Stopping...')
             stop = True
+MessageLoop(bot, handle).run_as_thread()
 def send_message(message):
     chat_id = "5820794752"
     bot.sendMessage(chat_id, message)
@@ -165,7 +166,6 @@ def job():
     buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
     start = True
     bull_market = False
-    MessageLoop(bot, handle).run_as_thread()
     while stop == False:
         try:
             now = datetime.now()

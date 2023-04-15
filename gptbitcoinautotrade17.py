@@ -143,7 +143,7 @@ def is_bull_market(ticker, time):
 upbit = pyupbit.Upbit(access, secret)
 stop = False
 def handle(msg):
-    global stop = False
+    global stop
     content_type, chat_type, chat_id = telepot.glance(msg)
     if content_type == 'text':
         if msg['text'] == '/start':

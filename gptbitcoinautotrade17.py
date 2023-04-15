@@ -19,7 +19,7 @@ tf.config.run_functions_eagerly(True)
 buy_unit = 0.2  # 분할 매수 금액 단위 설정
 
 COIN = "KRW-BTC" #코인명
-
+bot = telepot.Bot(token="6296102104:AAFC4ddbh7gSgkGOdysFqEBUkIoWXw0-g5A")
 def get_balance(ticker):
     # 원화 잔고 조회
     try:
@@ -141,8 +141,18 @@ def is_bull_market(ticker, time):
     return proba
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
+stop = False
+def handle(msg):
+    global stop = False
+    content_type, chat_type, chat_id = telepot.glance(msg)
+    if content_type == 'text':
+        if msg['text'] == '/start':
+            bot.sendMessage(chat_id, 'Starting...')
+            stop = False
+        elif msg['text'] == '/stop':
+            bot.sendMessage(chat_id, 'Stopping...')
+            stop = True
 def send_message(message):
-    bot = telepot.Bot(token="6296102104:AAFC4ddbh7gSgkGOdysFqEBUkIoWXw0-g5A")
     chat_id = "5820794752"
     bot.sendMessage(chat_id, message)
 # 스케줄러 실행
@@ -155,7 +165,8 @@ def job():
     buy_amount = krw * 0.9995 * buy_unit # 분할 매수 금액 계산
     start = True
     bull_market = False
-    while True:
+    MessageLoop(bot, handle).run_as_thread()
+    while stop == False:
         try:
             now = datetime.now()
             current_price = get_current_price(COIN)

@@ -129,7 +129,7 @@ def is_bull_market(ticker, time):
     DF = DF.dropna()
     # 입력 데이터와 출력 데이터 분리
     X = DF[['open', 'high', 'low', 'close', 'volume', 'ma5', 'ma10', 'ma20', 'ma60', 'ma120', 'rsi', 'macd', 'macdsignal', 'macdhist']]
-    y = (DF['close'].shift(-1) >= DF['close']).astype(int) # time 뒤의 가격이 크거나 같을 확률 예측
+    y = (DF['close'].shift(-1) < DF['close']).astype(int) # time 뒤의 가격이 낮을 확률 예측
     # 학습 데이터와 검증 데이터 분리
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
     # 모델 구성
@@ -188,9 +188,9 @@ def job():
                 target_price = predict_target_price("low")
                 sell_price = predict_target_price("high")
                 PriceEase = round((sell_price - target_price) * 0.1, 1)
-                hour_1 = is_bull_market(COIN, "minute60")
-                hour_3 = is_bull_market(COIN, "minute180")
-                hour_6 = is_bull_market(COIN, "minute360")
+                hour_1 = 1-is_bull_market(COIN, "minute60")
+                hour_3 = 1-is_bull_market(COIN, "minute180")
+                hour_6 = 1-is_bull_market(COIN, "minute360")
                 hour_24 = is_bull_market(COIN, "day")
                 if hour_1 >= 0.45 and hour_3 >= 0.45 and hour_6 >= 0.45:
                     bull_market = True

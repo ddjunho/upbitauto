@@ -162,7 +162,7 @@ def handle(msg):
             bot.sendMessage(chat_id, '일부 매매조건을 무시하지않고 매매합니다....')
             isForceStart = False
         elif msg['text'] == '/help':
-            bot.sendMessage(chat_id, 'start - 시작\nstop - 중지\nisForceStart - 일부 매매조건을 무시하고 매매합니다.\nisNormalStart - 일부 매매조건을 무시하지 않고 매매합니다.')
+            bot.sendMessage(chat_id, '/start - 시작\n/stop - 중지\n/isForceStart - 일부 매매조건을 무시하고 매매합니다.\n/isNormalStart - 일부 매매조건을 무시하지 않고 매매합니다.')
 MessageLoop(bot, handle).run_as_thread()
 def send_message(message):
     chat_id = "5820794752"
